@@ -39,7 +39,7 @@ $ npm run test:cov
 
 ## Stay in touch
 
-- Author - [Zack Aminu Myśliwiec](https://zackaminu.netlify.app)
+- Author - [Zack Aminu](https://zackaminu.netlify.app)
 - Website - [https://zackaminu.netlify.app](https://zackaminu.netlify.app)
 - Twitter - [@justhisgrace](https://twitter.com/justhisgrace)
 
