@@ -6,9 +6,13 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   
   const app = await NestFactory.create(AppModule);
+
   app.useGlobalPipes(new ValidationPipe({
     transform: true
   }));
+
+  app.setGlobalPrefix('api/v1');
+
 
   const config = new DocumentBuilder()
     .setTitle('Digital Escrow API')
@@ -27,7 +31,7 @@ async function bootstrap() {
     customSiteTitle: 'Digital Escrow API Docs',
   };
 
-  SwaggerModule.setup('api/v1', app, document, customOptions);
+  SwaggerModule.setup('api/v1/docs', app, document, customOptions);
 
   app.enableCors();
 
