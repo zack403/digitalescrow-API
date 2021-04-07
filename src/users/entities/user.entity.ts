@@ -13,6 +13,9 @@ export class UserEntity extends AbstractBaseEntity {
   @Column({type: "varchar", length: 128})
   public name: string;
 
+  @Column({ unique: true, length: 128 })
+  public accountNumber: string;
+
   @Column({type: "varchar", length: 128})
   public address: string;
 
@@ -28,6 +31,10 @@ export class UserEntity extends AbstractBaseEntity {
   @Column()
   @Exclude()
   public password: string;
+
+  @Column()
+  @Exclude()
+  public confirmPassword: string;
 
   @Column({type: "varchar", nullable: true})
   public avatar: string;
