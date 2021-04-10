@@ -11,16 +11,13 @@ import { EmailVerificationRepository } from './repositories/email-verification.r
 import { UsersService } from 'src/users/users.service';
 
 @Module({
-  imports: [UsersModule,
-    PassportModule,
+  imports: [
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     ConfigModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRETKEY,
-      signOptions: { expiresIn: process.env.JWT_EXPIRESIN },
-    }),
+    JwtModule.register({}),
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, UsersService, UsersRepository, EmailVerificationRepository],
-  exports: [AuthService]
+  exports: [ AuthService]
 })
 export class AuthModule {}

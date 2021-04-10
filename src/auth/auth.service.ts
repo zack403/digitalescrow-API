@@ -51,7 +51,7 @@ export class AuthService {
     const hashedPassword = await this.hashPassword(request.password);
 
     const newUser = plainToClass(UserEntity, request);
-    newUser.createdBy = request.email;
+    newUser.createdBy = request.name;
     newUser.password = hashedPassword;
     newUser.confirmPassword = hashedPassword;
 
@@ -84,7 +84,10 @@ export class AuthService {
      //generate auth token
      const {id: userId, email, name, isAdmin, emailVerified} = user;
      const payload: JwtPayload = { userId, email, name, isAdmin };
-     const token = await this.jwtService.sign(payload);
+     const token = await this.jwtService.sign(payload, {
+       secret: this.configService.get('JWT_SECRETKEY'),
+       expiresIn: this.configService.get('JWT_EXPIRESIN')
+     });
 
      return {
         id: userId,

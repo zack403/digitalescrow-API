@@ -3,7 +3,7 @@ import { Exclude } from 'class-transformer';
 import { AbstractBaseEntity } from 'src/_common/base.entity';
 import { IsEmail } from 'class-validator';
 
-@Entity('user')
+@Entity('User')
 export class UserEntity extends AbstractBaseEntity {
   
   @IsEmail()
@@ -13,13 +13,16 @@ export class UserEntity extends AbstractBaseEntity {
   @Column({type: "varchar", length: 128})
   public name: string;
 
-  @Column({ unique: true, length: 128 })
+  @Column({ type: 'varchar', unique: true })
   public accountNumber: string;
 
-  @Column({type: "varchar", length: 128})
+  @Column({ type: 'varchar'  })
+  public accountType: string;
+
+  @Column({type: "varchar", nullable: true, length: 128})
   public address: string;
 
-  @Column({type: "varchar", length: 128})
+  @Column({type: "varchar", nullable: true, length: 128})
   public gender: string;
 
   @Column({ type: 'date', nullable: true })

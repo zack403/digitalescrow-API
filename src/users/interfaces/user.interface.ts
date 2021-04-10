@@ -4,6 +4,8 @@ export interface UserRO {
     id: string;
     name: string;
     email: string;
+    accountNumber: string;
+    accountType: string;
     phoneNumber: string;
     address: string;
     dateOfBirth: Date;

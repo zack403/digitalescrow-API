@@ -19,7 +19,7 @@ export class AuthController {
   @ApiOperation({summary: 'Create a new Descrow user'})
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({ status: 201, description: 'User Successfully created' })
-  async register(@Body() registrationDto: RegisterDto, @Req() req: Request): Promise<string> {
+  async register(@Body() registrationDto: RegisterDto, @Req() req: any): Promise<string> {
     return await this.authService.register(registrationDto, req);
   }
 
@@ -51,7 +51,7 @@ export class AuthController {
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
   @ApiResponse({ status: 200, description: 'Email Verification sent' })
-  public async sendEmailVerification(@Param() params: any, @Req() req: Request): Promise<string> {
+  public async sendEmailVerification(@Param() params: any, @Req() req: any): Promise<string> {
     try {
         const {emailToken} = await this.authService.createEmailToken(params.email);
         if(emailToken) {
@@ -73,7 +73,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Forgot password email sent' })
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
-  public async sendEmailForgotPassword(@Param() params: any, @Req() req: Request): Promise<string> {
+  public async sendEmailForgotPassword(@Param() params: any, @Req() req: any): Promise<string> {
     return await this.authService.sendEmailForgotPassword(params.email, req.headers.host);
   }
 
@@ -98,13 +98,13 @@ export class AuthController {
 
   @Post('/change-password')
   @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard())
   @ApiOperation({summary: 'To change a Descrow user password'})
   @ApiResponse({ status: 404, description: 'Not found' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
   @ApiResponse({ status: 200, description: 'Change Password successful' })
   public async changePassord(@Body() changeDto: ChangePasswordDto, @Req() req: any): Promise<string> {
-    return await this.authService.changedPassword(changeDto, req.user);
+    return await this.authService.changedPassword(changeDto, req.user.id);
   }
 
 
