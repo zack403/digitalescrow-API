@@ -61,7 +61,7 @@ export class AuthService {
       if(saved) {
         const emailTokenCreated = await this.createEmailToken(saved.email);
         if(emailTokenCreated) {
-          if (await this.sendVerificationEmail(saved.email, emailTokenCreated.emailToken, req.headers.origin)) return true;
+          if (await this.sendVerificationEmail(saved.email, emailTokenCreated.emailToken, req.headers.origin, true)) return true;
         }
       } 
     } catch (error) {
@@ -139,7 +139,7 @@ export class AuthService {
     
   }
 
-  public async sendVerificationEmail(email: string, token: string, host: string): Promise<boolean> {
+  public async sendVerificationEmail(email: string, token: string, host: string, shouldSend?: boolean): Promise<boolean> {
     const messages = [];
     const user = await this.userRepo.findOne({where: {email}});
     if (user) {
@@ -156,16 +156,18 @@ export class AuthService {
 
           messages.push(msg1);
 
-          const msg2 = {
-            to: email,
-            from: '"Digital Escrow" <zackaminu@yahoo.com>',
-            templateId: this.configService.get('SENDGRID_EMAIL_WELCOME_TEMPLATE_ID'),
-            dynamicTemplateData: {
-              name: user.name
-            },
-          };
-
-          messages.push(msg2);
+          if(shouldSend) {
+              const msg2 = {
+                to: email,
+                from: '"Digital Escrow" <zackaminu@yahoo.com>',
+                templateId: this.configService.get('SENDGRID_EMAIL_WELCOME_TEMPLATE_ID'),
+                dynamicTemplateData: {
+                  name: user.name
+                },
+              };
+    
+              messages.push(msg2);
+          }
 
         try {
             const sent = await SendGrid.send(messages);
@@ -173,8 +175,7 @@ export class AuthService {
               return true;
             }
         } catch (error) {
-           console.log(error);
-           return false;
+           throw new HttpException(`An error occurred while trying to resend verification email, try again. ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
         }
         
     } else {

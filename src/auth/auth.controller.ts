@@ -59,16 +59,17 @@ export class AuthController {
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
   @ApiResponse({ status: 200, description: 'Email Verification sent' })
-  public async sendEmailVerification(@Param() params: any, @Req() req: any): Promise<string> {
+  public async sendEmailVerification(@Param() params: any, @Req() req: any): Promise<ResponseSuccess> {
     try {
         const {emailToken} = await this.authService.createEmailToken(params.email);
         if(emailToken) {
-          const isEmailSent = await this.authService.sendVerificationEmail(params.email, emailToken, req.headers.origin );
+          const isEmailSent = await this.authService.sendVerificationEmail(params.email, emailToken, req.headers.origin, false );
           if(isEmailSent){
-            return "Verification email has been sent, kindly check your inbox";
-          } else {
-            return "An error occurred while trying to resend verification email, try again.";
-          }
+            return {
+              status: HttpStatus.OK,
+              data: 'Verification email has been sent, kindly check your inbox'
+            } 
+          } 
         }
     } catch(error) {
       throw new HttpException(`An error occurred while trying to resend verification email - Error: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
