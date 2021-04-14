@@ -50,7 +50,7 @@ async function bootstrap() {
       api_secret: configService.get("CLOUDINARY_API_SECRET")
   })
   
-  await app.listen(process.env.PORT || 5000);
+  await app.listen( configService.get('PORT') || 5000);
 
   console.log(`server running on ${await app.getUrl()} : ` + new Date());
 }
