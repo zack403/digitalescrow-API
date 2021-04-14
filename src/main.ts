@@ -1,7 +1,9 @@
 import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerCustomOptions, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import {v2} from 'cloudinary';
 
 async function bootstrap() {
   
@@ -41,6 +43,13 @@ async function bootstrap() {
 
   app.enableCors();
 
+  const configService = app.get(ConfigService);
+  v2.config({
+      cloud_name: configService.get("CLOUDINARY_CLOUD_NAME"),
+      api_key: configService.get("CLOUDINARY_API_KEY"),
+      api_secret: configService.get("CLOUDINARY_API_SECRET")
+  })
+  
   await app.listen(process.env.PORT || 5000);
 
   console.log(`server running on ${await app.getUrl()} : ` + new Date());

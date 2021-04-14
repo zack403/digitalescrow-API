@@ -19,6 +19,7 @@ import { PasswordResetRepository } from './repositories/password-reset.repositor
 import { PasswordReset } from './interfaces/password-reset.interface';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { ResponseSuccess } from 'src/_common/response-success';
 
 
 @Injectable()
@@ -41,7 +42,7 @@ export class AuthService {
       SendGrid.setApiKey(this.configService.get('SENDGRID_API_KEY'));
     }
 
-  async register(request: RegisterDto, req: Request): Promise<string> {
+  async register(request: RegisterDto, req: Request): Promise<boolean> {
       
     const isExist = await this.userSvc.findByEmail(request.email);
     if(isExist) {
@@ -60,8 +61,7 @@ export class AuthService {
       if(saved) {
         const emailTokenCreated = await this.createEmailToken(saved.email);
         if(emailTokenCreated) {
-          await this.sendVerificationEmail(saved.email, emailTokenCreated.emailToken, req.headers.host);
-          return "User successfully created";
+          if (await this.sendVerificationEmail(saved.email, emailTokenCreated.emailToken, req.headers.origin)) return true;
         }
       } 
     } catch (error) {
@@ -206,9 +206,14 @@ export class AuthService {
   
   async createForgottenPasswordToken(userId: string): Promise<PasswordReset> {
     
+      const resetToken = await this.jwtService.sign({userId}, {
+        secret: this.configService.get('JWT_SECRETKEY'),
+        expiresIn: this.configService.get('JWT_EXPIRESIN')
+      }) 
+
       const forgottenPasswordPayload: PasswordReset = {
         userId,
-        resetToken: await this.jwtService.sign({userId}),
+        resetToken,
         createdBy: ''
       }
       const forgottenPasswordModel = await this.passwordResetRepo.save(forgottenPasswordPayload);
@@ -223,7 +228,7 @@ export class AuthService {
     
   }
 
-  public async sendEmailForgotPassword(email: string, host: string): Promise<string> {
+  public async sendEmailForgotPassword(email: string, host: string): Promise<ResponseSuccess> {
     const user = await this.userRepo.findOne({ where: { email: email } });
     if (!user) {
       throw new HttpException(`${email} does not exists`, HttpStatus.NOT_FOUND);
@@ -245,7 +250,10 @@ export class AuthService {
         try {
             const sent = await SendGrid.send(mailOptions);
             if(sent) {
-              return "An instruction has been sent to your email, kindly check your inbox and click on the link to reset your password"
+              return {
+                status: HttpStatus.OK,
+                data: "An instruction has been sent to your email, kindly check your inbox and click on the link to reset your password"
+              }
             }
         } catch (error) {
             return error.message;
@@ -256,7 +264,7 @@ export class AuthService {
   async isValidPasswordToken(token: string) {
     const user = await this.passwordResetRepo.findOne({where: {resetToken:token}});
     if (!user) {
-      throw new HttpException('Invalid URL', HttpStatus.BAD_REQUEST);
+      throw new HttpException('Invalid token or token expired', HttpStatus.BAD_REQUEST);
     }
 
     //check if token has expired
@@ -271,7 +279,7 @@ export class AuthService {
   }
 
 
-  async setNewPassord (request: ResetPasswordDto): Promise<string> {
+  async setNewPassord (request: ResetPasswordDto): Promise<ResponseSuccess> {
      
     const userToken = await this.passwordResetRepo.findOne({where: {resetToken: request.resetToken}});
 
@@ -297,14 +305,17 @@ export class AuthService {
     try {
       const updated = await this.userRepo.save(user);
       if(updated) {
-        return 'Password reset successful. Kindly login to your account';
+        return {
+          status: HttpStatus.OK,
+          data: 'Password reset successful. Kindly login to your account'
+        } 
       }
     } catch (error) {
       throw new HttpException(`An error occured while setting new passwod - Error: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR)
     }    
   }
 
-  async changedPassword (req: ChangePasswordDto, userId: string) {
+  async changedPassword (req: ChangePasswordDto, userId: string) : Promise<ResponseSuccess> {
     const {oldPassword, newPassword, confirmNewPassword} = req;
 
     if(oldPassword && newPassword && confirmNewPassword) {
@@ -319,7 +330,7 @@ export class AuthService {
   
       const isOldPasswordCorrect = await this.verifyPassword(oldPassword, user.password);
       if(!isOldPasswordCorrect) {
-        throw new HttpException('Old password is not correct.', HttpStatus.BAD_REQUEST );
+        throw new HttpException('Old password do not match our record.', HttpStatus.BAD_REQUEST );
       }  
 
       const hashedPassword = await this.hashPassword(newPassword);
@@ -330,7 +341,10 @@ export class AuthService {
       try {
         const updated = await this.userRepo.save(user);
         if(updated) {
-          return 'Password change successful. Kindly login again.';
+          return {
+            status: HttpStatus.OK,
+            data: 'Password change successful. Kindly login again.'
+          } 
         }
       } catch (error) {
         throw new HttpException(`An error occured while changeing your passwod - Error: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR)

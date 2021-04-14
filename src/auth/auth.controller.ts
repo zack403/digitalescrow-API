@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, HttpException, HttpStatus, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, HttpException, HttpStatus, UseGuards, HttpCode, Res } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { LoginRO } from 'src/users/interfaces/login-ro.interface';
+import { ResponseSuccess } from 'src/_common/response-success';
 import { AuthService } from './auth.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { LoginDto } from './dto/login.dto';
@@ -19,8 +20,13 @@ export class AuthController {
   @ApiOperation({summary: 'Create a new Descrow user'})
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({ status: 201, description: 'User Successfully created' })
-  async register(@Body() registrationDto: RegisterDto, @Req() req: any): Promise<string> {
-    return await this.authService.register(registrationDto, req);
+  async register(@Body() registrationDto: RegisterDto, @Req() req: any): Promise<ResponseSuccess> {
+    if(await this.authService.register(registrationDto, req)) {
+      return {
+        status: HttpStatus.CREATED,
+        data: "User successfully created"
+      };
+    }
   }
 
 
@@ -39,8 +45,10 @@ export class AuthController {
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
   @ApiResponse({ status: 200, description: 'Email verified successfully' })
-  async verifyEmail(@Param() params: any): Promise<string> {
-    return await this.authService.verifyEmail(params.token);
+  async verifyEmail(@Param() params: any, @Req() req: any, @Res() res: Response): Promise<void> {
+    if (await this.authService.verifyEmail(params.token)) {
+      return res.redirect(`${req.headers.origin}/dashboard`);
+    }
   }
 
   @Get('/resend-verification/:email')
@@ -55,7 +63,7 @@ export class AuthController {
     try {
         const {emailToken} = await this.authService.createEmailToken(params.email);
         if(emailToken) {
-          const isEmailSent = await this.authService.sendVerificationEmail(params.email, emailToken, req.headers.host );
+          const isEmailSent = await this.authService.sendVerificationEmail(params.email, emailToken, req.headers.origin );
           if(isEmailSent){
             return "Verification email has been sent, kindly check your inbox";
           } else {
@@ -73,11 +81,11 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Forgot password email sent' })
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
-  public async sendEmailForgotPassword(@Param() params: any, @Req() req: any): Promise<string> {
-    return await this.authService.sendEmailForgotPassword(params.email, req.headers.host);
+  public async sendEmailForgotPassword(@Param() params: any, @Req() req: any): Promise<ResponseSuccess> {
+    return await this.authService.sendEmailForgotPassword(params.email, req.headers.origin);
   }
 
-  @Post('/valid-pasword-token/:token')
+  @Get('/valid-password-token/:token')
   @ApiParam({name: 'token', required: true})
   @ApiOperation({summary: 'Verifies the password token send to a descrow user email'})
   async validPasswordToken(@Param() params: any) {
@@ -92,7 +100,7 @@ export class AuthController {
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
   @ApiResponse({ status: 200, description: 'Password Reset successful' })
-  public async setNewPassord(@Body() resetDto: ResetPasswordDto): Promise<string> {
+  public async setNewPassord(@Body() resetDto: ResetPasswordDto): Promise<ResponseSuccess> {
     return await this.authService.setNewPassord(resetDto);
   }
 
@@ -103,7 +111,7 @@ export class AuthController {
   @ApiResponse({ status: 404, description: 'Not found' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
   @ApiResponse({ status: 200, description: 'Change Password successful' })
-  public async changePassord(@Body() changeDto: ChangePasswordDto, @Req() req: any): Promise<string> {
+  public async changePassord(@Body() changeDto: ChangePasswordDto, @Req() req: any): Promise<ResponseSuccess> {
     return await this.authService.changedPassword(changeDto, req.user.id);
   }
 

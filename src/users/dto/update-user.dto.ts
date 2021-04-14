@@ -37,7 +37,7 @@ export class UpdateUserDto  {
     @ApiProperty()
     @IsOptional()
     @ApiPropertyOptional()
-    avatar: string;
+    profileImage: string;
 
     @IsDateString()
     @ApiProperty()

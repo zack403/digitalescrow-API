@@ -30,11 +30,6 @@ export class RegisterDto {
     @IsNotEmpty({message: 'Phone Number is required'})
     phoneNumber: string;
 
-    @IsString()
-    @ApiProperty()
-    @IsNotEmpty({message: 'Account Type is required'})
-    accountType: string;
-
     @Matches(/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, { message: 'Password too weak. Should contain uppercase letter, one special character and alphanumeric characters' })
     @IsNotEmpty({message: 'Password is required'}) 
     @MinLength(8, {message: 'Password should be minimum 8 characters long'}) 

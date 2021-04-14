@@ -2,6 +2,7 @@ import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn
 import { Exclude } from 'class-transformer';
 import { AbstractBaseEntity } from 'src/_common/base.entity';
 import { IsEmail } from 'class-validator';
+import { TransactionEntity } from 'src/transactions/entities/transaction.entity';
 
 @Entity('User')
 export class UserEntity extends AbstractBaseEntity {
@@ -16,14 +17,14 @@ export class UserEntity extends AbstractBaseEntity {
   @Column({ type: 'varchar', unique: true })
   public accountNumber: string;
 
-  @Column({ type: 'varchar'  })
-  public accountType: string;
-
   @Column({type: "varchar", nullable: true, length: 128})
   public address: string;
 
   @Column({type: "varchar", nullable: true, length: 128})
   public gender: string;
+
+  @Column({type: "varchar", nullable: true})
+  public profileImage: string;
 
   @Column({ type: 'date', nullable: true })
   public dateOfBirth: Date;
@@ -50,6 +51,9 @@ export class UserEntity extends AbstractBaseEntity {
   public emailVerified: boolean;
 
   @Column({type: 'bool', default: false })
-  public isAdmin: boolean
+  public isAdmin: boolean;
+
+  @OneToMany(() => TransactionEntity, t => t.user)
+  transactions: TransactionEntity[];
 }
 

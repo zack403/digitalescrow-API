@@ -6,6 +6,7 @@ import { DatabaseModule } from './database/database.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
+import { TransactionsModule } from './transactions/transactions.module';
 
 @Module({
   imports: [
@@ -15,7 +16,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
     ConfigModule.forRoot(), 
     DatabaseModule, 
     AuthModule, 
-    UsersModule
+    UsersModule, TransactionsModule
   ],
   controllers: [AppController],
   providers: [
