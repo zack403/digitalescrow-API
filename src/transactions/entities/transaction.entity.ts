@@ -9,7 +9,7 @@ import { SellerInfo } from "../interfaces/seller-info.interface";
 export class TransactionEntity extends AbstractBaseEntity {
 
     @Column({type: "varchar", length: 128})
-    name: string;
+    commodityName: string;
     
     @Column({type: "enum", enum: TransactionType})
     type: TransactionType;
