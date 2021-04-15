@@ -146,7 +146,7 @@ export class AuthService {
       
           const msg1 = {
             to: email,
-            from: '"Digital Escrow" <zackaminu@yahoo.com>',
+            from: '"Digital Escrow" <zack.aminu@netopconsult.com>',
             templateId: this.configService.get('SENDGRID_EMAIL_VERIFY_TEMPLATE_ID'),
             dynamicTemplateData: {
               name: user.name,
@@ -159,7 +159,7 @@ export class AuthService {
           if(shouldSend) {
               const msg2 = {
                 to: email,
-                from: '"Digital Escrow" <zackaminu@yahoo.com>',
+                from: '"Digital Escrow" <zack.aminu@netopconsult.com>',
                 templateId: this.configService.get('SENDGRID_EMAIL_WELCOME_TEMPLATE_ID'),
                 dynamicTemplateData: {
                   name: user.name
