@@ -16,19 +16,19 @@ export class RegisterDto {
     @IsNotEmpty({message: 'Name is required'})
     name: string;
     
-    @Matches(/^[0-9]*$/, {message: "Account Number should be of type number"})
-    @MinLength(10, {message: 'Account Number should be minimum 10 digits'})
-    @MaxLength(10, {message: 'Account Number should be maximum 10 digits'})  
-    @Expose()
-    @ApiProperty()
-    @IsNotEmpty({message: 'Account Number is required'})
-    accountNumber: string;
+    // @Matches(/^[0-9]*$/, {message: "Account Number should be of type number"})
+    // @MinLength(10, {message: 'Account Number should be minimum 10 digits'})
+    // @MaxLength(10, {message: 'Account Number should be maximum 10 digits'})  
+    // @Expose()
+    // @ApiProperty()
+    // @IsNotEmpty({message: 'Account Number is required'})
+    // accountNumber: string;
 
-    @IsString()
-    @Matches(/^[0-9]*$/, {message: 'Phone Number should be of type number'})
-    @ApiProperty()
-    @IsNotEmpty({message: 'Phone Number is required'})
-    phoneNumber: string;
+    // @IsString()
+    // @Matches(/^[0-9]*$/, {message: 'Phone Number should be of type number'})
+    // @ApiProperty()
+    // @IsNotEmpty({message: 'Phone Number is required'})
+    // phoneNumber: string;
 
     @Matches(/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, { message: 'Password too weak. Should contain uppercase letter, one special character and alphanumeric characters' })
     @IsNotEmpty({message: 'Password is required'}) 

@@ -240,11 +240,11 @@ export class AuthService {
     if(tokenModel && tokenModel.resetToken) {
       const mailOptions = {
         to: user.email,
-        from: '"Digital Escrow" <zackaminu@yahoo.com>',
+        from: '"Digital Escrow" <zack.aminu@netopconsult.com>',
         subject: 'Digital Escrow Account Password Reset',
         text: 'You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n' +
         'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
-        host + '/' + tokenModel.resetToken + '\n\n' +
+        host +'/reset-password/' + tokenModel.resetToken + '\n\n' +
         'If you did not request this, please ignore this email and your password will remain unchanged.\n'
         }
      
@@ -262,7 +262,7 @@ export class AuthService {
     }
   }
 
-  async isValidPasswordToken(token: string) {
+  async isValidPasswordToken(token: string): Promise<ResponseSuccess> {
     const user = await this.passwordResetRepo.findOne({where: {resetToken:token}});
     if (!user) {
       throw new HttpException('Invalid token or token expired', HttpStatus.BAD_REQUEST);
@@ -270,12 +270,15 @@ export class AuthService {
 
     //check if token has expired
     try {
-      this.jwtService.verify(token, this.configService.get('JWT_SECRETKEY'));
+      this.jwtService.verify(token, {secret: this.configService.get('JWT_SECRETKEY')});
    } catch (ex) {
      throw new HttpException('Token expired or is no longer valid! Kindly generate a new token', HttpStatus.BAD_REQUEST);
    }
 
-   return "Token verified successfully.";
+   return {
+     status: HttpStatus.OK,
+     data: "Token verified successfully."
+   } 
 
   }
 

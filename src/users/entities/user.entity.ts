@@ -14,7 +14,7 @@ export class UserEntity extends AbstractBaseEntity {
   @Column({type: "varchar", length: 128})
   public name: string;
 
-  @Column({ type: 'varchar', unique: true })
+  @Column({ type: 'varchar', nullable: true, unique: true })
   public accountNumber: string;
 
   @Column({type: "varchar", nullable: true, length: 128})
@@ -29,7 +29,7 @@ export class UserEntity extends AbstractBaseEntity {
   @Column({ type: 'date', nullable: true })
   public dateOfBirth: Date;
 
-  @Column({type: "varchar", length: 128})
+  @Column({type: "varchar", nullable: true, length: 128})
   public phoneNumber: string;
   
   @Column()
