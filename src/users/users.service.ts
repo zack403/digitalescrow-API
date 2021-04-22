@@ -27,8 +27,16 @@ export class UsersService {
 
    
   async findOne(id: string) : Promise<UserRO>{
+    
     try {
-      const user = await this.userRepo.findOne(id);
+      //const user = await this.userRepo.findOne(id,  {relations: ['transactions', 'payments'],  order: {createdAt: 'DESC'}}).co;
+      const user =  await this.userRepo.createQueryBuilder("user")
+                    .where("user.id = :id", { id: id })
+                    .innerJoinAndSelect("user.transactions", "transaction")
+                    .innerJoinAndSelect("user.payments", "payment")
+                    
+                    .orderBy("user.createdAt", "DESC")
+                    .getOne();
       if(user) {
           return user;
       }

@@ -2,14 +2,14 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
 import { IsString, IsNotEmpty, IsOptional, IsNumber, IsDateString, IsObject, IsArray, IsEnum } from "class-validator";
 import { TransactionType } from "src/enum/enum";
-import { SellerInfo } from "../interfaces/seller-info.interface";
+import { CounterPartyInfo } from "../interfaces/counter-party-info.interface";
 
 export class CreateTransactionDto {
     @Expose()
     @IsString()
     @ApiProperty()
     @IsNotEmpty({message: 'Name cannot be empty'})
-    name: string;
+    commodityName: string;
 
     @Expose()
     @IsString()
@@ -21,7 +21,7 @@ export class CreateTransactionDto {
     @Expose()
     @IsNumber()
     @ApiProperty()
-    @ApiPropertyOptional()
+    @IsNotEmpty({message: 'Amount cannot be empty'})
     amount: number;
 
     @Expose()
@@ -38,13 +38,13 @@ export class CreateTransactionDto {
 
     @Expose()
     @IsObject()
-    @IsNotEmpty()
-    sellerInfo: SellerInfo;
+    @IsNotEmpty({message: 'Seller Info cannot be empty'})
+    counterPartyInfo: CounterPartyInfo;
 
-    @Expose()
-    @ApiPropertyOptional()
-    @IsArray()
-    images: string[];
+    // @Expose()
+    // @ApiPropertyOptional()
+    // @IsArray()
+    // images: string[];
 
     @Expose()
     @ApiPropertyOptional()

@@ -7,8 +7,6 @@ export class ChangePasswordDto {
     @IsString()
     @ApiProperty()
     @IsNotEmpty({message: 'Old Password is required'}) 
-    @MinLength(8)
-    @Matches(/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, { message: 'Old Password too weak. Should contain uppercase letter, special character and alphanumeric characters' })
     oldPassword: string;
 
     @IsString()

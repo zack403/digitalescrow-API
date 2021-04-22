@@ -3,6 +3,7 @@ import { Exclude } from 'class-transformer';
 import { AbstractBaseEntity } from 'src/_common/base.entity';
 import { IsEmail } from 'class-validator';
 import { TransactionEntity } from 'src/transactions/entities/transaction.entity';
+import { PaymentEntity } from 'src/payments/entities/payment.entity';
 
 @Entity('User')
 export class UserEntity extends AbstractBaseEntity {
@@ -55,5 +56,8 @@ export class UserEntity extends AbstractBaseEntity {
 
   @OneToMany(() => TransactionEntity, t => t.user)
   transactions: TransactionEntity[];
+
+  @OneToMany(() => PaymentEntity, t => t.user)
+  payments: PaymentEntity[];
 }
 

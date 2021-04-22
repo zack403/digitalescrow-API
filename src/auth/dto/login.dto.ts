@@ -10,8 +10,6 @@ export class LoginDto {
 
     @IsString()
     @ApiProperty()
-    @IsNotEmpty({message: 'Password is required'}) 
-    @MinLength(8, {message: 'Password should be minimum 8 character long'})
-    @Matches(/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, { message: 'Password too weak. Should contain uppercase letter, special character and alphanumeric characters' })
+    @IsNotEmpty({message: 'Password is required'})    
     password: string;
 }

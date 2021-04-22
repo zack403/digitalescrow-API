@@ -9,6 +9,7 @@ import { ConfigModule } from '@nestjs/config';
 import { UsersRepository } from 'src/users/users.repository';
 import { EmailVerificationRepository } from './repositories/email-verification.repository';
 import { UsersService } from 'src/users/users.service';
+import SendGridService from 'src/_common/sendgrid/sendgrid.service';
 
 @Module({
   imports: [
@@ -17,7 +18,7 @@ import { UsersService } from 'src/users/users.service';
     JwtModule.register({}),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, UsersService, UsersRepository, EmailVerificationRepository],
+  providers: [AuthService, SendGridService, JwtStrategy, UsersService, UsersRepository, EmailVerificationRepository],
   exports: [ AuthService]
 })
 export class AuthModule {}

@@ -20,6 +20,8 @@ import { PasswordReset } from './interfaces/password-reset.interface';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ResponseSuccess } from 'src/_common/response-success';
+import { SendgridData } from 'src/_common/sendgrid/sendgrid.interface';
+import SendGridService from 'src/_common/sendgrid/sendgrid.service';
 
 
 @Injectable()
@@ -35,6 +37,7 @@ export class AuthService {
     private readonly connection: Connection,
     private readonly userSvc: UsersService, 
     private jwtService: JwtService,
+    private readonly sendGridSvc: SendGridService,
     private readonly configService: ConfigService) {
       this.emailVerificationRepo = this.connection.getCustomRepository(EmailVerificationRepository);
       this.userRepo = this.connection.getCustomRepository(UsersRepository);
@@ -46,7 +49,7 @@ export class AuthService {
       
     const isExist = await this.userSvc.findByEmail(request.email);
     if(isExist) {
-         throw new HttpException(`An account with email ${request.email} already exists`, HttpStatus.BAD_REQUEST)
+         throw new HttpException(`An account with email ${request.email} already exist`, HttpStatus.BAD_REQUEST)
     }
     
     const hashedPassword = await this.hashPassword(request.password);
@@ -61,7 +64,7 @@ export class AuthService {
       if(saved) {
         const emailTokenCreated = await this.createEmailToken(saved.email);
         if(emailTokenCreated) {
-          if (await this.sendVerificationEmail(saved.email, emailTokenCreated.emailToken, req.headers.origin, true)) return true;
+          if (await this.sendVerificationEmail(saved.email, emailTokenCreated.emailToken, req.headers.origin)) return true;
         }
       } 
     } catch (error) {
@@ -139,44 +142,27 @@ export class AuthService {
     
   }
 
-  public async sendVerificationEmail(email: string, token: string, host: string, shouldSend?: boolean): Promise<boolean> {
-    const messages = [];
+  public async sendVerificationEmail(email: string, token: string, host: string): Promise<boolean> {
+
     const user = await this.userRepo.findOne({where: {email}});
     if (user) {
-      
-          const msg1 = {
+
+          const msg: SendgridData = {
             to: email,
-            from: '"Digital Escrow" <zack.aminu@netopconsult.com>',
+            from: this.configService.get('SENDGRID_FROM_EMAIL'),
             templateId: this.configService.get('SENDGRID_EMAIL_VERIFY_TEMPLATE_ID'),
             dynamicTemplateData: {
               name: user.name,
               link: host +'/api/v1/auth/email/verify/'+ token
             },
-          };
-
-          messages.push(msg1);
-
-          if(shouldSend) {
-              const msg2 = {
-                to: email,
-                from: '"Digital Escrow" <zack.aminu@netopconsult.com>',
-                templateId: this.configService.get('SENDGRID_EMAIL_WELCOME_TEMPLATE_ID'),
-                dynamicTemplateData: {
-                  name: user.name
-                },
-              };
-    
-              messages.push(msg2);
           }
 
-        try {
-            const sent = await SendGrid.send(messages);
-            if(sent) {
-              return true;
-            }
-        } catch (error) {
-           throw new HttpException(`An error occurred while trying to resend verification email, try again. ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+          const sent = await this.sendGridSvc.sendMailAsync(msg);
+          if(sent) {
+            return true;
+          } else {
+            throw new HttpException(`An error occurred while trying to resend verification email, try again.`, HttpStatus.INTERNAL_SERVER_ERROR);
+          }
         
     } else {
       throw new HttpException('This email do not have an account with us', HttpStatus.NOT_FOUND);

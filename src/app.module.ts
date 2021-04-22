@@ -7,6 +7,8 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TransactionsModule } from './transactions/transactions.module';
+import { SendgridModule } from './_common/sendgrid/sendgrid.module';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
   imports: [
@@ -16,7 +18,7 @@ import { TransactionsModule } from './transactions/transactions.module';
     ConfigModule.forRoot(), 
     DatabaseModule, 
     AuthModule, 
-    UsersModule, TransactionsModule
+    UsersModule, TransactionsModule, SendgridModule, PaymentsModule
   ],
   controllers: [AppController],
   providers: [
