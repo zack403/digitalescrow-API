@@ -38,7 +38,7 @@ export class CreateTransactionDto {
 
     @Expose()
     @IsObject()
-    @IsNotEmpty({message: 'Seller Info cannot be empty'})
+    @IsNotEmpty({message: 'Counter Party Info cannot be empty'})
     counterPartyInfo: CounterPartyInfo;
 
     // @Expose()

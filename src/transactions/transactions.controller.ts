@@ -7,11 +7,10 @@ import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagg
 import { TransactionRO } from './interfaces/transaction.interface';
 import { Filter } from 'src/_utility/filter.util';
 import { DeleteResult } from 'typeorm';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { imageFileFilter } from 'src/_utility/file-upload.util';
+import { RejectionDto } from './dto/rejection.dto';
 import { ResponseSuccess } from 'src/_common/response-success';
-import { Rejection } from './interfaces/rejection.interface';
-import { NewTerms } from './interfaces/new-terms.interface';
+import { NewTermsDto } from './dto/new-terms.dto';
+
 
 @ApiTags('Transaction')
 @ApiBearerAuth()
@@ -60,14 +59,14 @@ export class TransactionsController {
   @Put('reject/:id')
   @ApiOperation({ summary: 'Reject an escrow transaction' })
   @ApiResponse({ status: 200, description: 'Return transaction successfully rejected' })
-  reject(@Param('id') id: string, @Body() data: Rejection, @Req() req: any): Promise<ResponseSuccess> {
+  reject(@Param('id') id: string,@Body() data: RejectionDto, @Req() req: any): Promise<ResponseSuccess> {
     return this.transactionsService.reject(id, data, req);
   }
 
   @Put('new-terms/:id')
   @ApiOperation({ summary: 'Sends new terms for an escrow transaction' })
   @ApiResponse({ status: 200, description: 'Return transaction successfully updated' })
-  newTerms(@Param('id') id: string, @Body() data: NewTerms, @Req() req: any): Promise<ResponseSuccess> {
+  newTerms(@Param('id') id: string, @Body() data: NewTermsDto, @Req() req: any): Promise<ResponseSuccess> {
     return this.transactionsService.newTerms(id, data, req);
   }
 

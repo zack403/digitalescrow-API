@@ -15,8 +15,8 @@ import { ConfigService } from '@nestjs/config';
 import {formatter} from '../_utility/currency-formatter.util';
 import { TransactionStatus } from 'src/enum/enum';
 import { UsersService } from 'src/users/users.service';
-import { Rejection } from './interfaces/rejection.interface';
-import { NewTerms } from './interfaces/new-terms.interface';
+import { NewTermsDto } from './dto/new-terms.dto';
+import { RejectionDto } from './dto/rejection.dto';
 
 
 @Injectable()
@@ -156,7 +156,7 @@ export class TransactionsService {
 
   }
 
-  async reject(id: string, data: Rejection, req: any): Promise<ResponseSuccess> {
+  async reject(id: string, data: RejectionDto, req: any): Promise<ResponseSuccess> {
     
     if(!data.reason) {
       throw new HttpException('Rejection Reason cannot be empty', HttpStatus.BAD_REQUEST);
@@ -209,7 +209,8 @@ export class TransactionsService {
     }
   }
 
-  async newTerms(id: string, data: NewTerms, req: any): Promise<ResponseSuccess> {
+  async newTerms(id: string, data: NewTermsDto, req: any): Promise<ResponseSuccess> {
+
     if(!data.conditions) {
       throw new HttpException('Conditions cannot be empty', HttpStatus.BAD_REQUEST);
     }
