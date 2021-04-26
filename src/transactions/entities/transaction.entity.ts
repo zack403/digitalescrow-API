@@ -42,6 +42,9 @@ export class TransactionEntity extends AbstractBaseEntity {
     @Column("simple-array", {nullable: true})
     conditions: string[];
 
+    @Column({type: 'bool', default: false })
+    hasChanges: boolean;
+
     @Column("simple-json")
     counterPartyInfo: CounterPartyInfo;
 

@@ -224,6 +224,7 @@ export class TransactionsService {
     transaction.otherMessage = data.message;
     transaction.updatedAt = new Date();
     transaction.updatedBy = req.user.name;
+    transaction.hasChanges = true;
 
     const patched = await this.transRepo.save(transaction);
     if(patched) {
@@ -234,10 +235,10 @@ export class TransactionsService {
         
         const msg: SendgridData = {
             to: otherPartyInfo.email,
-            subject: transaction.type === 'buying' ? 'Seller suggested changes to the escrow transaction' : 'Buyer suggested changes to the escrow transaction',
             from: this.configService.get('SENDGRID_FROM_EMAIL'),
             templateId: this.configService.get('SENDGRID_ESCROW_CHANGE_TEMPLATE_ID'),
             dynamicTemplateData: {
+              subject: transaction.type === 'buying' ? 'Seller suggested changes to the escrow transaction' : 'Buyer suggested changes to the escrow transaction',
               sellerName: otherPartyInfo.name,
               buyerName: req.user.name,
               productName: patched.commodityName,
