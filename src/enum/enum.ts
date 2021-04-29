@@ -6,5 +6,6 @@ export enum TransactionType {
 export enum TransactionStatus {
     PENDING = "pending",
     ACCEPTED = "accepted",
-    REJECTED = "rejected"
+    REJECTED = "rejected",
+    CANCELLED = 'cancelled'
 }

@@ -122,8 +122,9 @@ export class TransactionsService {
 
     const patched = await this.transRepo.save(transactionToAccept);
     if(patched) {
-      // send an email notifying the
+      // send an email notifying the other party that counter party accepted
       const otherPartyInfo = await this.userSvc.findOne(patched.userId);
+      
       if(otherPartyInfo) {
         const msg: SendgridData = {
           to: otherPartyInfo.email,
@@ -131,7 +132,7 @@ export class TransactionsService {
           templateId: transactionToAccept.type === 'buying' ? this.configService.get('SENDGRID_SELLER_ACCEPT_TEMPLATE_ID') : this.configService.get('SENDGRID_BUYER_ACCEPT_TEMPLATE_ID'),
           dynamicTemplateData: {
               name: otherPartyInfo.name,
-              link: req.headers.origin +'/payment'+ transactionToAccept.id
+              link: req.headers.origin +'/transaction-payment/' + transactionToAccept.id + '/' + otherPartyInfo.name + '/' + otherPartyInfo.email
           }
         }
 

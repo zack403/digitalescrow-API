@@ -3,6 +3,7 @@ import { UserEntity } from "src/users/entities/user.entity";
 import { AbstractBaseEntity } from "src/_common/base.entity";
 import { Column, Entity, ManyToOne } from "typeorm";
 import { CounterPartyInfo } from "../interfaces/counter-party-info.interface";
+import { EscrowBankDetails } from "../interfaces/escrow-bank-details.interface";
 
 
 @Entity('Transaction')
@@ -47,6 +48,9 @@ export class TransactionEntity extends AbstractBaseEntity {
 
     @Column("simple-json")
     counterPartyInfo: CounterPartyInfo;
+
+    @Column("simple-json", {nullable: true})
+    escrowBankDetails: EscrowBankDetails;
 
     @ManyToOne(() => UserEntity, u => u.transactions)
     user: UserEntity;
