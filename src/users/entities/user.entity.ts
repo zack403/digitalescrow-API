@@ -42,9 +42,6 @@ export class UserEntity extends AbstractBaseEntity {
   public confirmPassword: string;
 
   @Column({type: "varchar", nullable: true})
-  public avatar: string;
-
-  @Column({type: "varchar", nullable: true})
   @Exclude()
   public currentHashedRefreshToken?: string;
   
