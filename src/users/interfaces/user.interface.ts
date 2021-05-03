@@ -8,7 +8,7 @@ export interface UserRO {
     phoneNumber: string;
     address: string;
     dateOfBirth: Date;
-    avatar: string;
+    profileImage: string;
     gender: string;
     emailVerified: boolean;
     isAdmin: boolean;
