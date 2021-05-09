@@ -4,6 +4,7 @@ import { AbstractBaseEntity } from 'src/_common/base.entity';
 import { IsEmail } from 'class-validator';
 import { TransactionEntity } from 'src/transactions/entities/transaction.entity';
 import { PaymentEntity } from 'src/payments/entities/payment.entity';
+import { UserBankDetails } from '../dto/user-bank-details.dto';
 
 @Entity('User')
 export class UserEntity extends AbstractBaseEntity {
@@ -15,8 +16,8 @@ export class UserEntity extends AbstractBaseEntity {
   @Column({type: "varchar", length: 128})
   public name: string;
 
-  @Column({ type: 'varchar', nullable: true, unique: true })
-  public accountNumber: string;
+  @Column("simple-json", {nullable: true})
+  userBankDetails: UserBankDetails;
 
   @Column({type: "varchar", nullable: true, length: 128})
   public address: string;

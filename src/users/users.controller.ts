@@ -8,6 +8,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { imageFileFilter } from 'src/_utility/file-upload.util';
 import { uploadFile } from 'src/_utility/upload.util';
+import { ResponseSuccess } from 'src/_common/response-success';
 
 @ApiTags('User')
 @ApiBearerAuth()
@@ -34,7 +35,7 @@ export class UsersController {
   @UseInterceptors(FileInterceptor('profileImage', {fileFilter: imageFileFilter}))
   @ApiOperation({ summary: 'Update a user' })
   @ApiResponse({ status: 200, description: 'Return user successfully updated' })
-  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto, @UploadedFile() profileImage: Express.Multer.File, @Req() req: any): Promise<string> {
+  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto, @UploadedFile() profileImage: Express.Multer.File, @Req() req: any): Promise<ResponseSuccess> {
     
     if(profileImage) {
       const imageUrl = await uploadFile(profileImage.path);

@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { Expose } from 'class-transformer';
-import { IsString, IsNotEmpty, IsOptional, IsDateString, IsEmail, Matches, MaxLength, MinLength } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsDateString, IsEmail, Matches, MaxLength, MinLength, IsObject } from 'class-validator';
+import { UserBankDetails } from './user-bank-details.dto';
 export class UpdateUserDto  {
 
     @Expose()
@@ -14,13 +15,18 @@ export class UpdateUserDto  {
     @IsNotEmpty({message: 'Name is required'})
     name: string;
     
-    @Matches(/^[0-9]*$/, {message: "Account Number should be of type number"})
-    @MinLength(10, {message: 'Account Number should be minimum 10 digits'})
-    @MaxLength(10, {message: 'Account Number should be maximum 10 digits'})  
+    // @Matches(/^[0-9]*$/, {message: "Account Number should be of type number"})
+    // @MinLength(10, {message: 'Account Number should be minimum 10 digits'})
+    // @MaxLength(10, {message: 'Account Number should be maximum 10 digits'})  
+    // @Expose()
+    // @ApiProperty()
+    // @IsNotEmpty({message: 'Account Number is required'})
+    // accountNumber: string;
+
     @Expose()
-    @ApiProperty()
-    @IsNotEmpty({message: 'Account Number is required'})
-    accountNumber: string;
+    @IsObject()
+    @IsNotEmpty({message: 'Payout account Info cannot be empty'})
+    userBankDetails: UserBankDetails;
 
     @IsString()
     @Matches(/^[0-9]*$/, {message: 'Phone Number should be of type number'})
@@ -44,9 +50,4 @@ export class UpdateUserDto  {
     @IsOptional()
     @ApiPropertyOptional()
     dateOfBirth: Date;
-
-    @IsString()
-    @ApiProperty()
-    @IsNotEmpty({message: 'Gender is required'})
-    gender: string;
 }

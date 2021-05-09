@@ -1,6 +1,7 @@
 /* eslint-disable prettier/prettier */
 
 import { CounterPartyInfo } from "./counter-party-info.interface";
+import { EscrowBankDetails } from "./escrow-bank-details.interface";
 
 export interface TransactionRO {
     id: string;
@@ -10,6 +11,7 @@ export interface TransactionRO {
     expiryDate: Date;
     paymentDate: Date;
     counterPartyInfo: CounterPartyInfo;
+    escrowBankDetails: EscrowBankDetails;
     conditions: string[];
     amount: number
 }

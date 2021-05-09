@@ -3,6 +3,7 @@ import { plainToClassFromExist } from 'class-transformer';
 import { LoginDto } from 'src/auth/dto/login.dto';
 import { RegisterDto } from 'src/auth/dto/register.dto';
 import { JwtPayload } from 'src/auth/interfaces/jwt.interface';
+import { ResponseSuccess } from 'src/_common/response-success';
 import { Filter } from 'src/_utility/filter.util';
 import { Connection, DeleteResult, ILike } from 'typeorm';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -41,7 +42,7 @@ export class UsersService {
    
   }
 
-  async update(id: string, payload: UpdateUserDto, userObj: UserEntity) : Promise<string> {
+  async update(id: string, payload: UpdateUserDto, userObj: UserEntity) : Promise<ResponseSuccess> {
     try {
       const user = await this.userRepo.findOne(id);
       if(user) {
@@ -51,6 +52,13 @@ export class UsersService {
                 throw new HttpException( `Email with ${payload.email} is already in use`, HttpStatus.BAD_REQUEST);
             }
          }
+
+         if( user.userBankDetails.accountNumber != payload.userBankDetails.accountNumber) {
+          const acctNoExist = await this.userRepo.findOne({where: {userBankDetails: ILike(`%${payload.userBankDetails.accountNumber}%`)}});
+          if(acctNoExist){
+              throw new HttpException( `Account number with ${payload.userBankDetails.accountNumber} is already in use`, HttpStatus.BAD_REQUEST);
+          }
+       }
   
          user.updatedAt = new Date();
          user.updatedBy = userObj.updatedBy || userObj.createdBy;
@@ -58,7 +66,11 @@ export class UsersService {
          const updated = plainToClassFromExist(user, payload);
    
          await this.userRepo.save(updated);
-         return "User successfully updated";
+         
+         return {
+            status: HttpStatus.OK,
+            data: "Profile successfully updated"
+         } 
         
       }
       throw new HttpException(`The user with ID ${id} cannot be found`, HttpStatus.NOT_FOUND);

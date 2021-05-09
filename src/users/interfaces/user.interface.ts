@@ -1,10 +1,12 @@
 /* eslint-disable prettier/prettier */
 
+import { UserBankDetails } from "../dto/user-bank-details.dto";
+
 export interface UserRO {
     id: string;
     name: string;
     email: string;
-    accountNumber: string;
+    userBankDetails: UserBankDetails;
     phoneNumber: string;
     address: string;
     dateOfBirth: Date;
