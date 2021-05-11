@@ -22,6 +22,7 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { ResponseSuccess } from 'src/_common/response-success';
 import { SendgridData } from 'src/_common/sendgrid/sendgrid.interface';
 import SendGridService from 'src/_common/sendgrid/sendgrid.service';
+import {logger} from '../_common/logger';
 
 
 @Injectable()
@@ -46,7 +47,6 @@ export class AuthService {
     }
 
   async register(request: RegisterDto, req: Request): Promise<boolean> {
-      
     const isExist = await this.userSvc.findByEmail(request.email);
     if(isExist) {
          throw new HttpException(`An account with email ${request.email} already exist`, HttpStatus.BAD_REQUEST)
@@ -68,6 +68,7 @@ export class AuthService {
         }
       } 
     } catch (error) {
+      //logger.log('info', `Requesting ${req.method} ${req.originalUrl}`, {tags: 'http', additionalInfo: {body: req.body, headers: req.headers }}))
       throw new HttpException(`Error while creating user - Error: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
