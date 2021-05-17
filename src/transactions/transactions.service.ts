@@ -17,6 +17,8 @@ import { TransactionStatus } from 'src/enum/enum';
 import { UsersService } from 'src/users/users.service';
 import { NewTermsDto } from './dto/new-terms.dto';
 import { RejectionDto } from './dto/rejection.dto';
+import { WovenCeateCustomerPayload } from 'src/payments/interfaces/woven-create-customer.interface';
+import { PaymentsService } from 'src/payments/payments.service';
 
 
 @Injectable()
@@ -27,6 +29,7 @@ export class TransactionsService {
     private readonly connection: Connection, 
     private readonly configService: ConfigService, 
     private readonly sendGridSvc: SendGridService,
+    private readonly paymentSvc: PaymentsService,
     private readonly userSvc: UsersService ) {
     this.transRepo = this.connection.getCustomRepository(TransactionRepository);
   }
@@ -36,6 +39,30 @@ export class TransactionsService {
     const newTransaction = plainToClass(TransactionEntity, createTransactionDto);
     newTransaction.createdBy = req.user.name;
     newTransaction.userId = req.user.id;
+
+    // tie an escrow transaction with a virtual account Number here;
+    const today = new Date();
+    const expires_on = new Date(today.setDate(today.getDate() + 1));
+    
+    const wovenPayload : WovenCeateCustomerPayload = {
+      customer_reference: req.user.id,
+      name: req.user.name,
+      email: req.user.email,
+      mobile_number: newTransaction.phoneNumber,
+      expires_on
+    }
+
+    let customerHasVirtualAcctNo: boolean = false;
+    const customerTransaction = await this.transRepo.findOne({where: {userId: req.user.id}});
+    if(customerTransaction.escrowBankDetails.accountNumber) {
+      customerHasVirtualAcctNo = true;
+    } else {
+      customerHasVirtualAcctNo = false;
+    }
+
+
+    const resultFromWovenApi = await this.paymentSvc.generateTransactionVirtualAccount(customerHasVirtualAcctNo, wovenPayload);
+    newTransaction.escrowBankDetails = resultFromWovenApi;
 
     try {
       const saved = await this.transRepo.save(newTransaction);

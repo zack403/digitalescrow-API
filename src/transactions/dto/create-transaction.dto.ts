@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
-import { IsString, IsNotEmpty, IsOptional, IsNumber, IsDateString, IsObject, IsArray, IsEnum } from "class-validator";
+import { IsString, IsNotEmpty, IsOptional, IsNumber, IsDateString, IsObject, IsArray, IsEnum, Matches } from "class-validator";
 import { TransactionType } from "src/enum/enum";
 import { CounterPartyInfo } from "../interfaces/counter-party-info.interface";
 
@@ -17,6 +17,12 @@ export class CreateTransactionDto {
     @IsOptional()
     @ApiPropertyOptional()
     description: string;
+
+    @IsString()
+    @Matches(/^[0-9]*$/, {message: 'Phone Number should be of type number'})
+    @ApiProperty()
+    @IsNotEmpty({message: 'Phone Number is required'})
+    phoneNumber: string;
 
     @Expose()
     @IsNumber()

@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpService, HttpStatus, Injectable } from '@nestjs/common';
 import { plainToClass, plainToClassFromExist } from 'class-transformer';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { ResponseSuccess } from 'src/_common/response-success';
@@ -10,6 +10,9 @@ import { CreatePaymentDto } from './dto/create-payment.dto';
 import { PaymentEntity } from './entities/payment.entity';
 import { PaymentRO } from './interfaces/payment.interface';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
+import { WovenCeateCustomerPayload } from './interfaces/woven-create-customer.interface';
+import { WovenCreateCustomerResponse } from './interfaces/woven-create-customer-response.interface';
+import { ConfigService } from '@nestjs/config';
 
 
 @Injectable()
@@ -17,9 +20,44 @@ export class PaymentsService {
   private paymentRepo: PaymentRepository
   
   constructor(
-    private readonly connection: Connection, 
+    private readonly connection: Connection,
+    private httpService: HttpService,
+    private configService: ConfigService,
     private readonly userSvc: UsersService ) {
     this.paymentRepo = this.connection.getCustomRepository(PaymentRepository);
+  }
+
+  async generateTransactionVirtualAccount(customerHasVirtualAcctNo: boolean, payload: WovenCeateCustomerPayload): Promise<WovenCreateCustomerResponse> {
+      
+      const requestHeaders = {
+        'Content-Type' : 'application/json',
+        'Accept': 'application/json',
+        'api_secret': `${this.configService.get('WOVEN_API_SECRET')}`
+      };
+
+      try {
+        const response = await this.httpService.post(
+                        customerHasVirtualAcctNo ? `${this.configService.get("WOVEN_BASE_URL")}/vnubans` : 
+                        `${this.configService.get("WOVEN_BASE_URL")}/vnubans/create_customer`, 
+                        JSON.stringify(payload), 
+                        {headers: requestHeaders})
+                        .toPromise();
+        
+        const {data} = response.data;
+        if(data.vnuban) {
+          const returnObj : WovenCreateCustomerResponse = {
+            accountNumber: data.vnuban,
+            bankName: data.bank_name,
+            bankCode: data.bank_code,
+            expiresOn: new Date(data.expires_on)
+          }
+          
+          return returnObj;
+        }
+      } catch ({response}) {
+        const {message} = response.data;
+        throw new HttpException(`Error while trying to create customer vnuban: Error: ${message}`, response.status === 400 ? HttpStatus.BAD_REQUEST : HttpStatus.INTERNAL_SERVER_ERROR);
+      }
   }
 
   async create(payload: CreatePaymentDto, req: any): Promise<ResponseSuccess> {

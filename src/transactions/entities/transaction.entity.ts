@@ -21,6 +21,9 @@ export class TransactionEntity extends AbstractBaseEntity {
     @Column({type: "varchar", nullable: true, length: 128})
     otherMessage: string;
 
+    @Column({type: "varchar", nullable: true, length: 128})
+    phoneNumber: string;
+
     @Column({ type: "int"})
     amount: number;
 
