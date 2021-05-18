@@ -216,7 +216,7 @@ export class AuthService {
   public async sendEmailForgotPassword(email: string, host: string): Promise<ResponseSuccess> {
     const user = await this.userRepo.findOne({ where: { email: email } });
     if (!user) {
-      throw new HttpException(`${email} does not exists`, HttpStatus.NOT_FOUND);
+      throw new HttpException(`An account with the email ${email} does not exist with us`, HttpStatus.NOT_FOUND);
     }
 
     const tokenModel = await this.createForgottenPasswordToken(user.id);
@@ -336,7 +336,7 @@ export class AuthService {
           } 
         }
       } catch (error) {
-        throw new HttpException(`An error occured while changeing your passwod - Error: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR)
+        throw new HttpException(`An error occured while changing your passwod - Error: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR)
       }
     }
     else {
