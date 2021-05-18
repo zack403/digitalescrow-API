@@ -16,8 +16,12 @@ export default class SendGridService {
           return true;
         }
     } catch (error) {
-      Logger.error(`SendGridService.sendMailAsync: ${error.message}`);
-      throw new HttpException(`An error occurred while trying to send email, try again. ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
+      let sendErr = [];
+      for (const err of error.response.body.errors) {
+        sendErr.push(err.message);
+      }
+      Logger.error(`SendGridService.sendMailAsync: ${sendErr}`);
+      throw new HttpException(`An error occurred while trying to send email, try again. ${sendErr}`, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }

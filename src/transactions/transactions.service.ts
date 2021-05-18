@@ -54,7 +54,7 @@ export class TransactionsService {
 
     let customerHasVirtualAcctNo: boolean = false;
     const customerTransaction = await this.transRepo.findOne({where: {userId: req.user.id}});
-    if(customerTransaction.escrowBankDetails.accountNumber) {
+    if(customerTransaction && customerTransaction.escrowBankDetails.accountNumber) {
       customerHasVirtualAcctNo = true;
     } else {
       customerHasVirtualAcctNo = false;

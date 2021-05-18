@@ -1,4 +1,4 @@
-import { HttpException, HttpService, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpService, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { plainToClass, plainToClassFromExist } from 'class-transformer';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { ResponseSuccess } from 'src/_common/response-success';
@@ -56,6 +56,7 @@ export class PaymentsService {
         }
       } catch ({response}) {
         const {message} = response.data;
+        Logger.error(`Woven.generateVa: ${message}`);
         throw new HttpException(`Error while trying to create customer vnuban: Error: ${message}`, response.status === 400 ? HttpStatus.BAD_REQUEST : HttpStatus.INTERNAL_SERVER_ERROR);
       }
   }
