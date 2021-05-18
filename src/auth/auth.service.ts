@@ -11,7 +11,6 @@ import { JwtService } from '@nestjs/jwt';
 import { EmailVerificationRepository } from './repositories/email-verification.repository';
 import { UsersRepository } from 'src/users/users.repository';
 import { EmailVerification } from './interfaces/email-verification.interface';
-import * as SendGrid from "@sendgrid/mail";
 import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
 import { Connection, Not } from 'typeorm';
@@ -22,7 +21,6 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { ResponseSuccess } from 'src/_common/response-success';
 import { SendgridData } from 'src/_common/sendgrid/sendgrid.interface';
 import SendGridService from 'src/_common/sendgrid/sendgrid.service';
-import {Logger} from '../_common/logger';
 
 
 @Injectable()
@@ -43,7 +41,6 @@ export class AuthService {
       this.emailVerificationRepo = this.connection.getCustomRepository(EmailVerificationRepository);
       this.userRepo = this.connection.getCustomRepository(UsersRepository);
       this.passwordResetRepo = this.connection.getCustomRepository(PasswordResetRepository);
-      SendGrid.setApiKey(this.configService.get('SENDGRID_API_KEY'));
     }
 
   async register(request: RegisterDto, req: Request): Promise<boolean> {
@@ -227,16 +224,17 @@ export class AuthService {
     if(tokenModel && tokenModel.resetToken) {
       const mailOptions = {
         to: user.email,
-        from: '"Digital Escrow" <zack.aminu@netopconsult.com>',
-        subject: 'Digital Escrow Account Password Reset',
+        from: this.configService.get('SENDGRID_FROM_EMAIL'),
+        subject: 'Descrow Account Password Reset',
         text: 'You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n' +
         'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
         host +'/reset-password/' + tokenModel.resetToken + '\n\n' +
-        'If you did not request this, please ignore this email and your password will remain unchanged.\n'
-        }
+        'If you did not request this, please ignore this email and your password will remain unchanged.\n',
+        templateId: ''
+      }
      
         try {
-            const sent = await SendGrid.send(mailOptions);
+            const sent = await this.sendGridSvc.sendMailAsync(mailOptions);
             if(sent) {
               return {
                 status: HttpStatus.OK,
