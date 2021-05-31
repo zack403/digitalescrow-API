@@ -83,6 +83,9 @@ export class TransactionsService {
 
     const resultFromWovenApi = await this.paymentSvc.generateTransactionVirtualAccount(customerHasVirtualAcctNo, wovenPayload);
     newTransaction.escrowBankDetails = resultFromWovenApi;
+    newTransaction.escrowBankDetails.hasMoney = false;
+    newTransaction.escrowBankDetails.payoutComplete = false;
+    newTransaction.escrowBankDetails.payoutReference = "";
 
     try {
       const saved = await this.transRepo.save(newTransaction);
