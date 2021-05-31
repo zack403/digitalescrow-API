@@ -6,6 +6,7 @@ export class UserBankDetails {
     
     bankName: string;
     accountName: string;
+    bankCode: string;
 
     @Matches(/^[0-9]*$/, {message: "Account Number should be of type number"})
     @MinLength(10, {message: 'Account Number should be minimum 10 digits'})

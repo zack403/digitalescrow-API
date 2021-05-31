@@ -1,4 +1,4 @@
-import { Controller, Get, Body, Param, Delete, Put, Query, Req, HttpException, HttpStatus, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Body, Param, Delete, Put, Query, Req, HttpException, HttpStatus, UseGuards, UseInterceptors, UploadedFile, ClassSerializerInterceptor } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserRO } from './interfaces/user.interface';
@@ -17,6 +17,7 @@ import { ResponseSuccess } from 'src/_common/response-success';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @UseInterceptors(ClassSerializerInterceptor)
   @Get()
   @ApiOperation({ summary: 'Get all users' })
   @ApiResponse({ status: 200, description: 'Return all users' })
@@ -24,6 +25,7 @@ export class UsersController {
     return await this.usersService.findAll(filter);
   }
 
+  @UseInterceptors(ClassSerializerInterceptor)
   @Get(':id')
   @ApiOperation({ summary: 'Get a user' })
   @ApiResponse({ status: 200, description: 'Return a user' })

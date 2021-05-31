@@ -4,6 +4,7 @@ import { AbstractBaseEntity } from "src/_common/base.entity";
 import { Column, Entity, ManyToOne } from "typeorm";
 import { CounterPartyInfo } from "../interfaces/counter-party-info.interface";
 import { EscrowBankDetails } from "../interfaces/escrow-bank-details.interface";
+import { InitiatorInfo } from "../interfaces/initiator-info.interface";
 
 
 @Entity('Transaction')
@@ -33,11 +34,17 @@ export class TransactionEntity extends AbstractBaseEntity {
     @Column({ name: 'paymentDate', default: new Date()})
     paymentDate: Date;
 
+    @Column({ name: 'paymentGracePeriodDate', default: new Date()})
+    paymentGracePeriodDate: Date;
+
     @Column({type: "varchar", default: TransactionStatus.PENDING})
     status: TransactionStatus;
 
     @Column({ name: 'expiryDate', default: new Date()})
     expiryDate: Date;
+
+    @Column({ name: 'expiryGracePeriodDate', default: new Date()})
+    expiryGracePeriodDate: Date;
     // @Column("simple-array", {nullable: true})
     // images: string[];
     @Column({type: "varchar", nullable: true, length: 128})
@@ -57,4 +64,7 @@ export class TransactionEntity extends AbstractBaseEntity {
 
     @ManyToOne(() => UserEntity, u => u.transactions)
     user: UserEntity;
+
+    @Column("simple-json", {nullable: true})
+    initiatorInfo: InitiatorInfo;
 }

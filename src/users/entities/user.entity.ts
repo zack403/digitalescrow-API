@@ -11,46 +11,46 @@ export class UserEntity extends AbstractBaseEntity {
   
   @IsEmail()
   @Column({ unique: true, length: 128 })
-  public email: string;
+  email: string;
 
   @Column({type: "varchar", length: 128})
-  public name: string;
+  name: string;
 
   @Column("simple-json", {nullable: true})
   userBankDetails: UserBankDetails;
 
   @Column({type: "varchar", nullable: true, length: 128})
-  public address: string;
+  address: string;
 
   @Column({type: "varchar", nullable: true, length: 128})
-  public gender: string;
+  gender: string;
 
   @Column({type: "varchar", nullable: true})
-  public profileImage: string;
+  profileImage: string;
 
   @Column({ type: 'date', nullable: true })
-  public dateOfBirth: Date;
+  dateOfBirth: Date;
 
   @Column({type: "varchar", nullable: true, length: 128})
-  public phoneNumber: string;
+  phoneNumber: string;
   
   @Column()
   @Exclude()
-  public password: string;
+  password: string;
 
   @Column()
   @Exclude()
-  public confirmPassword: string;
+  confirmPassword: string;
 
   @Column({type: "varchar", nullable: true})
   @Exclude()
-  public currentHashedRefreshToken?: string;
+  currentHashedRefreshToken?: string;
   
   @Column({type: 'bool', default: false })
-  public emailVerified: boolean;
+  emailVerified: boolean;
 
   @Column({type: 'bool', default: false })
-  public isAdmin: boolean;
+  isAdmin: boolean;
 
   @OneToMany(() => TransactionEntity, t => t.user)
   transactions: TransactionEntity[];

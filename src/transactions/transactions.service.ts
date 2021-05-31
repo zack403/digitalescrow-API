@@ -1,9 +1,9 @@
-import { HttpException, HttpStatus, Injectable, PayloadTooLargeException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger, PayloadTooLargeException } from '@nestjs/common';
 import { plainToClass, plainToClassFromExist } from 'class-transformer';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { ResponseSuccess } from 'src/_common/response-success';
 import { Filter } from 'src/_utility/filter.util';
-import { Brackets, Connection, DeleteResult } from 'typeorm';
+import { Brackets, Connection, DeleteResult, ILike, Like } from 'typeorm';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { TransactionEntity } from './entities/transaction.entity';
@@ -13,7 +13,7 @@ import SendGridService from 'src/_common/sendgrid/sendgrid.service';
 import { SendgridData } from 'src/_common/sendgrid/sendgrid.interface';
 import { ConfigService } from '@nestjs/config';
 import {formatter} from '../_utility/currency-formatter.util';
-import { TransactionStatus } from 'src/enum/enum';
+import { TransactionStatus, TransactionType } from 'src/enum/enum';
 import { UsersService } from 'src/users/users.service';
 import { NewTermsDto } from './dto/new-terms.dto';
 import { RejectionDto } from './dto/rejection.dto';
@@ -36,9 +36,29 @@ export class TransactionsService {
 
   async create(createTransactionDto: CreateTransactionDto, req: any): Promise<ResponseSuccess> {
 
+    const userTransaction = await this.transRepo.findOne({where: {userId: req.user.id }, order: {createdAt: 'DESC'}});
+    
+    if(userTransaction && createTransactionDto.type === 'buying') {
+      if(userTransaction.type === 'buying' && !userTransaction.escrowBankDetails?.hasMoney){
+       throw new HttpException('Looks like you have a previous transaction that is awaiting your payment, please proceed to make payment', HttpStatus.BAD_REQUEST);
+      }
+    } else if (userTransaction && createTransactionDto.type === 'selling') {
+      if(userTransaction.type === 'selling' && !userTransaction.escrowBankDetails?.hasMoney){
+        throw new HttpException('Looks like you have a previous transaction that is awaiting your buyers payment', HttpStatus.BAD_REQUEST);
+       }
+    }
+
     const newTransaction = plainToClass(TransactionEntity, createTransactionDto);
     newTransaction.createdBy = req.user.name;
     newTransaction.userId = req.user.id;
+    
+    newTransaction.expiryGracePeriodDate = new Date(newTransaction.expiryDate);
+    newTransaction.expiryGracePeriodDate.setDate(new Date(newTransaction.expiryDate).getDate() + 2);
+    newTransaction.paymentGracePeriodDate = new Date(newTransaction.paymentDate);
+    newTransaction.paymentGracePeriodDate.setDate(new Date(newTransaction.paymentDate).getDate() + 1);
+
+    const userInfo = await this.userSvc.findOne(newTransaction.userId);
+    newTransaction.initiatorInfo = {name: userInfo.name, email: userInfo.email};
 
     // tie an escrow transaction with a virtual account Number here;
     const today = new Date();
@@ -49,12 +69,12 @@ export class TransactionsService {
       name: req.user.name,
       email: req.user.email,
       mobile_number: newTransaction.phoneNumber,
-      expires_on
+      expires_on,
+      destination_nuban: this.configService.get('DESTINATION_NUBAN')
     }
 
     let customerHasVirtualAcctNo: boolean = false;
-    const customerTransaction = await this.transRepo.findOne({where: {userId: req.user.id}});
-    if(customerTransaction && customerTransaction.escrowBankDetails.accountNumber) {
+    if(userTransaction && userTransaction.escrowBankDetails?.accountNumber) {
       customerHasVirtualAcctNo = true;
     } else {
       customerHasVirtualAcctNo = false;
@@ -83,7 +103,11 @@ export class TransactionsService {
       const transactions = await this.transRepo.createQueryBuilder("transaction")
               .where(new Brackets(qb => {
                   qb.where("transaction.status ILike :status", { status: `%${search}%` })
-                  .orWhere("transaction.counterPartyInfo.email ILike :email", { email: `%${search}%` })
+                  .orWhere('transaction.counterPartyInfo ::jsonb @> :counterPartyInfo', {
+                    counterPartyInfo: {
+                      email: search
+                    }
+                  })
                   .orWhere("transaction.commodityName :commodityName", { commodityName: `%${search}%` })
               }))
               .orderBy("transaction.createdAt", "DESC")
@@ -331,4 +355,52 @@ export class TransactionsService {
     }
   }
 
+  async onWovenEvents(payload: any, req: any): Promise<any> {
+    if(!payload) {
+      Logger.log("woven-events", "no payload");
+      return {
+        status: 400,
+        data: "No data"
+      }
+    }
+
+    if(payload.unique_reference) {
+      const transaction = await this.transRepo.createQueryBuilder("trans")
+                          .where('trans.escrowBankDetails ::jsonb @> :escrowBankDetails', {
+                            escrowBankDetails: {
+                              accountNumber: payload.nuban
+                            }
+                        }).getOne();
+
+      if(transaction){
+        transaction.escrowBankDetails.hasMoney = true;
+        await this.transRepo.save(transaction);
+
+        return HttpStatus.OK;
+
+      } else {
+        Logger.log("woven_events_unique refernece", JSON.stringify(transaction));
+        return HttpStatus.OK;
+      }
+    } else if (payload.payout_reference) {
+      const transaction = await this.transRepo.createQueryBuilder("trans")
+                          .where('trans.escrowBankDetails ::jsonb @> :escrowBankDetails', {
+                            escrowBankDetails: {
+                              payoutReference: payload.payout_reference
+                            }
+                        }).getOne();
+
+      if(transaction){
+        transaction.escrowBankDetails.payoutComplete = true;
+        transaction.escrowBankDetails.payoutReference = payload.payout_reference
+        await this.transRepo.save(transaction);
+        return HttpStatus.OK;
+
+      } else {
+        Logger.log("woven_events_payout refernece", JSON.stringify(transaction));
+        return HttpStatus.OK;
+
+      }
+    }
+  }
 }

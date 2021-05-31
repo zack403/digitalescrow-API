@@ -26,12 +26,57 @@ export class PaymentsController {
     return await this.paymentService.create(payload, req);
   }
 
-  @Get()
+  @ApiOperation({summary: 'Request payment for an escrow transaction'})
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 201, description: 'Payment Successfully requested' })
+  @Post('request-payment/:transactionId')
+  async requestPayment(@Param('transactionId') transactionId: string, @Req() req: any): Promise<ResponseSuccess> {
+    return await this.paymentService.requestPayment(transactionId, req);
+  }
+
+  @ApiOperation({summary: 'Request payment for an escrow transaction'})
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 201, description: 'Payment Successfully requested' })
+  @Post('trigger-payment/:transactionId')
+  async triggerPayment(@Param('transactionId') transactionId: string, @Req() req: any): Promise<ResponseSuccess> {
+    return await this.paymentService.triggerPayment(transactionId, req.headers.origin);
+  }
+
+  @ApiOperation({summary: 'Release payment for an escrow transaction'})
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 201, description: 'Payment Successfully requested' })
+  @Post('release-payment/:transactionId')
+  async releasePayment(@Param('transactionId') transactionId: string, @Req() req: any): Promise<ResponseSuccess> {
+    return await this.paymentService.releasePayment(transactionId, req);
+  }
+
+  // @ApiOperation({summary: 'Refuse payment for an escrow transaction'})
+  // @ApiResponse({ status: 400, description: 'Bad request' })
+  // @ApiResponse({ status: 201, description: 'Payment Successfully refused' })
+  // @Post('refuse-payment/:transactionId')
+  // async refusePayment(@Param('transactionId') transactionId: string, @Req() req: any): Promise<ResponseSuccess> {
+  //   return await this.paymentService.refusePayment(transactionId, req);
+  // }
+
   @ApiOperation({ summary: 'Get all payments' })
   @ApiResponse({ status: 200, description: 'Return all payments' })
   @Get()
   async findAll(@Query() filter: Filter): Promise<PaymentRO[]> {
     return await this.paymentService.findAll(filter);
+  }
+
+  @Get('banks')
+  @ApiOperation({ summary: 'Get all banks' })
+  @ApiResponse({ status: 200, description: 'Return all banks' })
+  async GetBanks(): Promise<any> {
+    return await this.paymentService.GetBanks();
+  }
+
+  @Post('nuban/enquiry')
+  @ApiOperation({ summary: 'Get all banks' })
+  @ApiResponse({ status: 200, description: 'Return all banks' })
+  async VerifyNuban(@Body() payload: any,): Promise<any> {
+    return await this.paymentService.VerifyNuban(payload);
   }
 
   @Get(':id')

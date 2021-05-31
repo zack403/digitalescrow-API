@@ -9,6 +9,9 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TransactionsModule } from './transactions/transactions.module';
 import { SendgridModule } from './_common/sendgrid/sendgrid.module';
 import { PaymentsModule } from './payments/payments.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { PayOutModule } from './_common/tasks/pay-out/pay-out.module';
+import { CancelTransactionModule } from './_common/tasks/cancel-transaction/cancel-transaction.module';
 
 @Module({
   imports: [
@@ -18,7 +21,14 @@ import { PaymentsModule } from './payments/payments.module';
     ConfigModule.forRoot(), 
     DatabaseModule, 
     AuthModule, 
-    UsersModule, TransactionsModule, SendgridModule, PaymentsModule
+    UsersModule, 
+    TransactionsModule, 
+    SendgridModule, 
+    PaymentsModule,
+    ScheduleModule.forRoot(),
+    //PayOutModule,
+    CancelTransactionModule
+
   ],
   controllers: [AppController],
   providers: [

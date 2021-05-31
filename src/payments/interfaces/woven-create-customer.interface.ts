@@ -4,4 +4,5 @@ export interface WovenCeateCustomerPayload {
     email: string;
     mobile_number: string;
     expires_on: Date;
+    destination_nuban: string;
 }

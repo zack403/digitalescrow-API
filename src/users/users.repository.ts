@@ -14,8 +14,8 @@ export class UsersRepository extends Repository<UserEntity> {
     async findAll({search, page} : Filter): Promise<UserRO[]> {
         if(search) {
             const users = await this.createQueryBuilder("user")
-                    .innerJoinAndSelect("user.transactions", "transactions")
-                    .innerJoinAndSelect("user.payments", "payments")
+                    .leftJoinAndSelect("user.transactions", "transactions")
+                    .leftJoinAndSelect("user.payments", "payments")
                     .where(new Brackets(qb => {
                         qb.where("user.name ILike :name", { name: `%${search}%` })
                         .orWhere("user.email ILike :email", { email: `%${search}%` })
@@ -39,6 +39,12 @@ export class UsersRepository extends Repository<UserEntity> {
 
     async findByEmail(email: string): Promise<boolean> {
         return await this.findOne({where: {email: email}}) ? true : false;
+    }
+
+    async findUserByEmail(email: string): Promise<UserRO> {
+        const user = await this.findOne({where: {email: email}});
+        if(user) return user;
+        return null;
     }
 
     async register(request: RegisterDto): Promise<UserRO> {

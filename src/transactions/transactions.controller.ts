@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, Query, HttpException, HttpStatus, Put, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, Query, HttpException, HttpStatus, Put, UseInterceptors, Logger } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
@@ -13,12 +13,12 @@ import { NewTermsDto } from './dto/new-terms.dto';
 
 
 @ApiTags('Transaction')
-@ApiBearerAuth()
-@UseGuards(AuthGuard())
 @Controller('transaction')
 export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard())
   @ApiOperation({summary: 'Create a new Descrow transaction'})
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({ status: 201, description: 'Transaction Successfully created' })
@@ -27,6 +27,17 @@ export class TransactionsController {
     return await this.transactionsService.create(createTransactionDto, req);
   }
 
+  
+  @Post('on_woven_events')
+  async onWovenEvents(@Body() payload: any, @Req() req: any): Promise<any> {
+    Logger.log("woven-events", req);
+    Logger.log("woven-events", payload);
+    return await this.transactionsService.onWovenEvents(payload, req);
+  }
+
+
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard())
   @Get()
   @ApiOperation({ summary: 'Get all transactions' })
   @ApiResponse({ status: 200, description: 'Return all transactions' })
@@ -35,6 +46,8 @@ export class TransactionsController {
     return await this.transactionsService.findAll(filter);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard())
   @Get(':id')
   @ApiOperation({ summary: 'Get a transaction' })
   @ApiResponse({ status: 200, description: 'Return a transaction' })
@@ -42,6 +55,8 @@ export class TransactionsController {
     return await this.transactionsService.findOne(id);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard())
   @Put(':id')
   @ApiOperation({ summary: 'Update a transaction' })
   @ApiResponse({ status: 200, description: 'Return transaction successfully updated' })
@@ -49,6 +64,8 @@ export class TransactionsController {
     return this.transactionsService.update(id, updateTransactionDto, req.user);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard())
   @Put('accept/:id')
   @ApiOperation({ summary: 'Accept an escrow transaction' })
   @ApiResponse({ status: 200, description: 'Return transaction successfully accepted' })
@@ -56,6 +73,8 @@ export class TransactionsController {
     return this.transactionsService.accept(id, req);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard())
   @Put('reject/:id')
   @ApiOperation({ summary: 'Reject an escrow transaction' })
   @ApiResponse({ status: 200, description: 'Return transaction successfully rejected' })
@@ -63,6 +82,8 @@ export class TransactionsController {
     return this.transactionsService.reject(id, data, req);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard())
   @Put('new-terms/:id')
   @ApiOperation({ summary: 'Sends new terms for an escrow transaction' })
   @ApiResponse({ status: 200, description: 'Return transaction successfully updated' })
@@ -70,6 +91,8 @@ export class TransactionsController {
     return this.transactionsService.newTerms(id, data, req);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard())
   @Delete(':id')
   @ApiOperation({ summary: 'Delete transaction' })
   @ApiResponse({ status: 200, description: 'Transaction successfully deleted' })
