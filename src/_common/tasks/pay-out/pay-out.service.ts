@@ -4,8 +4,6 @@ import { Cron, CronExpression  } from '@nestjs/schedule';
 import { Connection } from 'typeorm';
 import { TransactionRepository } from 'src/transactions/transaction.repository';
 import { PaymentsService } from 'src/payments/payments.service';
-import { TransactionEntity } from 'src/transactions/entities/transaction.entity';
-import { UserEntity } from 'src/users/entities/user.entity';
 import { TransactionType } from 'src/enum/enum';
 import { UsersService } from 'src/users/users.service';
 

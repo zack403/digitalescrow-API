@@ -26,7 +26,7 @@ import { CancelTransactionModule } from './_common/tasks/cancel-transaction/canc
     SendgridModule, 
     PaymentsModule,
     ScheduleModule.forRoot(),
-    //PayOutModule,
+    PayOutModule,
     CancelTransactionModule
 
   ],
