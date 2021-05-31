@@ -91,6 +91,7 @@ export class PaymentsService {
          throw new HttpException('The seller you are trying to release payment to does not exist', HttpStatus.NOT_FOUND);
        }
 
+       
        //check if vNuban generated for the transaction has money in it
         if(!transaction.escrowBankDetails.hasMoney) {
           throw new HttpException('Operation failed, Escrow account to debit does not have money in it', HttpStatus.BAD_REQUEST);
