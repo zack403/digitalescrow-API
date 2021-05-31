@@ -73,8 +73,8 @@ export class PaymentsController {
   }
 
   @Post('nuban/enquiry')
-  @ApiOperation({ summary: 'Get all banks' })
-  @ApiResponse({ status: 200, description: 'Return all banks' })
+  @ApiOperation({ summary: 'Verify a nuban' })
+  @ApiResponse({ status: 200, description: 'Return verified' })
   async VerifyNuban(@Body() payload: any,): Promise<any> {
     return await this.paymentService.VerifyNuban(payload);
   }
