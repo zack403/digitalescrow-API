@@ -17,7 +17,7 @@ export class CancelTransactionService {
       this.transRepo = this.connection.getCustomRepository(TransactionRepository);
     }
 
-    @Cron(CronExpression.EVERY_MINUTE)
+    @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
     async handleCancelTransaction() {
       this.logger.log("Background service started");
       
