@@ -1,4 +1,4 @@
-import { TransactionStatus, TransactionType } from "src/enum/enum";
+import { PaymentStatus, TransactionStatus, TransactionType } from "src/enum/enum";
 import { UserEntity } from "src/users/entities/user.entity";
 import { AbstractBaseEntity } from "src/_common/base.entity";
 import { Column, Entity, ManyToOne } from "typeorm";
@@ -22,8 +22,8 @@ export class PaymentEntity extends AbstractBaseEntity {
     @Column({ name: 'paymentDate', default: new Date()})
     paymentDate: Date;
 
-    @Column({type: 'bool', default: false })
-    completed: boolean;
+    @Column({type: 'varchar', default: PaymentStatus.PENDING })
+    status: PaymentStatus;
 
     @ManyToOne(() => UserEntity, u => u.payments)
     user: UserEntity;

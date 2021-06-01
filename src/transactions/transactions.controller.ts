@@ -84,7 +84,7 @@ export class TransactionsController {
 
   @ApiBearerAuth()
   @UseGuards(AuthGuard())
-  @Put('new-terms/:id')
+  @Put('new_terms/:id')
   @ApiOperation({ summary: 'Sends new terms for an escrow transaction' })
   @ApiResponse({ status: 200, description: 'Return transaction successfully updated' })
   newTerms(@Param('id') id: string, @Body() data: NewTermsDto, @Req() req: any): Promise<ResponseSuccess> {

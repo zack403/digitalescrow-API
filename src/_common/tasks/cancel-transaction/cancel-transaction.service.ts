@@ -17,7 +17,7 @@ export class CancelTransactionService {
       this.transRepo = this.connection.getCustomRepository(TransactionRepository);
     }
 
-    @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+    @Cron(CronExpression.EVERY_MINUTE)
     async handleCancelTransaction() {
       this.logger.log("Background service started");
       
@@ -31,12 +31,12 @@ export class CancelTransactionService {
                               hasMoney: false
                             }})
                             .andWhere("t.status <> :status", { status: TransactionStatus.CANCELLED})
-                            .getRawMany();
+                            .getMany();
 
       if(transactionsToCancel.length > 0) {
         for (const p of transactionsToCancel) {
             p.status = TransactionStatus.CANCELLED;
-            await this.transRepo.save(transactionsToCancel);
+            await this.transRepo.save(p);
         } 
       }
     }

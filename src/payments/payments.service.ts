@@ -91,7 +91,7 @@ export class PaymentsService {
          throw new HttpException('The seller you are trying to release payment to does not exist', HttpStatus.NOT_FOUND);
        }
 
-       
+
        //check if vNuban generated for the transaction has money in it
         if(!transaction.escrowBankDetails.hasMoney) {
           throw new HttpException('Operation failed, Escrow account to debit does not have money in it', HttpStatus.BAD_REQUEST);
@@ -189,7 +189,7 @@ export class PaymentsService {
 
   async findAll({search, page} : Filter): Promise<PaymentRO[]> {
     if(search) {
-      const transactions = await this.paymentRepo.createQueryBuilder("payment")
+      const payments = await this.paymentRepo.createQueryBuilder("payment")
               .where(new Brackets(qb => {
                   qb.where("payment.completed ILike :query", { query: `%${true}%` })
                   .orWhere("payment.virtualAccountNumber ILike :van", { van: `%${search}%` })
@@ -200,7 +200,7 @@ export class PaymentsService {
               .take(15)
               .getMany();
 
-      return transactions;
+      return payments;
     }
       return await this.paymentRepo.find({ order: {createdAt: 'DESC'}, take: 15, skip: page ? 15 * (page - 1) : 0});
   }
@@ -274,6 +274,10 @@ export class PaymentsService {
             transaction.escrowBankDetails.payoutComplete = true;
             transaction.escrowBankDetails.payoutReference = returnValue.data.payout_reference;
             await this.transRepo.save(transaction);
+
+            if(transaction.type === TransactionType.BUY) {
+              
+            }
             return {
               status: 200,
               data: 'Payout transaction successful'
@@ -282,6 +286,11 @@ export class PaymentsService {
             return {
               status: 500,
               data: 'Payout transaction failed'
+            }
+          } else {
+            return {
+              status: 200,
+              data: 'Payout transaction initiated and its pending'
             }
           }
       } catch (error) {
