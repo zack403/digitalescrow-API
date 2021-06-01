@@ -31,7 +31,7 @@ export class CancelTransactionService {
                               hasMoney: false
                             }})
                             .andWhere("t.status <> :status", { status: TransactionStatus.CANCELLED})
-                            .getMany();
+                            .getRawMany();
 
       if(transactionsToCancel.length > 0) {
         for (const p of transactionsToCancel) {

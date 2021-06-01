@@ -111,7 +111,7 @@ export class TransactionsService {
                       email: search
                     }
                   })
-                  .orWhere("transaction.commodityName :commodityName", { commodityName: `%${search}%` })
+                  .orWhere("transaction.commodityName ILike :commodityName", { commodityName: `%${search}%` })
               }))
               .orderBy("transaction.createdAt", "DESC")
               .skip(15 * (page ? page - 1 : 0))

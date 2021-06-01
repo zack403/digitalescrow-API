@@ -191,9 +191,7 @@ export class PaymentsService {
     if(search) {
       const payments = await this.paymentRepo.createQueryBuilder("payment")
               .where(new Brackets(qb => {
-                  qb.where("payment.completed ILike :query", { query: `%${true}%` })
-                  .orWhere("payment.virtualAccountNumber ILike :van", { van: `%${search}%` })
-                  
+                  qb.where("payment.virtualAccountNumber ILike :van", { van: `%${search}%` })                  
               }))
               .orderBy("payment.createdAt", "DESC")
               .skip(15 * (page ? page - 1 : 0))
@@ -276,7 +274,7 @@ export class PaymentsService {
             await this.transRepo.save(transaction);
 
             if(transaction.type === TransactionType.BUY) {
-              
+
             }
             return {
               status: 200,
