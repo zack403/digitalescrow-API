@@ -264,9 +264,12 @@ export class PaymentsService {
           {headers: this.requestHeaders})
           .toPromise(); 
 
+          console.log({response});
+
           Logger.log("returnValue", JSON.stringify(response));
 
           const returnValue = response.data;
+          console.log({returnValue});
           if(returnValue.status === 'success') {
             //payout completed
             transaction.escrowBankDetails.payoutComplete = true;
@@ -349,10 +352,10 @@ export class PaymentsService {
         if(error.code === 'ENOTFOUND') {
           throw new HttpException(`Please make sure you are connected to the internet`, HttpStatus.NOT_ACCEPTABLE);
         }
-        console.log(error);
-        const {message} = error.response.data;
-        Logger.error(`Woven.releasePayment: ${message}`);
-        throw new HttpException(`Error while trying to release payment: Error: ${message}`, error.response.status === 400 ? HttpStatus.BAD_REQUEST : HttpStatus.INTERNAL_SERVER_ERROR);
+        console.log("error", error);
+        //const {message} = error.response.data;
+        //Logger.error(`Woven.releasePayment: ${message}`);
+        throw new HttpException(`Error while trying to release payment: Error: ${error}`,  HttpStatus.BAD_REQUEST );
       }
   }
 
