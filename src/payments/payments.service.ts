@@ -97,7 +97,8 @@ export class PaymentsService {
           throw new HttpException('Operation failed, Escrow account to debit does not have money in it', HttpStatus.BAD_REQUEST);
         }
 
-        await this.initiatePayout(transaction, userPayingTo);
+        const result = await this.initiatePayout(transaction, userPayingTo);
+        return result;
 
     }
     throw new HttpException('Transaction not found', HttpStatus.NOT_FOUND);
@@ -267,7 +268,7 @@ export class PaymentsService {
           const returnValue = response.data;
 
           console.log({returnValue});
-          
+
           if(returnValue.status === 'success') {
             //payout completed
             // transaction.escrowBankDetails.payoutComplete = true;
