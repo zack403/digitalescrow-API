@@ -272,9 +272,9 @@ export class PaymentsService {
           console.log({returnValue});
           if(returnValue.status === 'success') {
             //payout completed
-            transaction.escrowBankDetails.payoutComplete = true;
-            transaction.escrowBankDetails.payoutReference = returnValue.data.payout_reference;
-            await this.transRepo.save(transaction);
+            // transaction.escrowBankDetails.payoutComplete = true;
+            // transaction.escrowBankDetails.payoutReference = returnValue.data.payout_reference;
+            // await this.transRepo.save(transaction);
 
             // if(transaction.type === TransactionType.BUY) {
             //   const request = [];
