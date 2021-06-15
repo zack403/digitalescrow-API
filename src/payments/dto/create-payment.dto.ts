@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
-import { IsString, IsNotEmpty, IsOptional, IsNumber, IsDateString, IsArray, IsEnum } from "class-validator";
+import { IsString, IsNotEmpty, IsOptional, IsNumber, IsDateString, IsArray, IsEnum, IsBoolean } from "class-validator";
+import { PaymentStatus } from "src/enum/enum";
 
 export class CreatePaymentDto {
 
@@ -8,7 +9,15 @@ export class CreatePaymentDto {
     @IsNumber()
     @ApiProperty()
     @IsNotEmpty({message: 'Amount cannot be empty'})
-    amount: number;
+    amountSent: number;
+
+    @Expose()
+    @IsNumber()
+    @ApiProperty()
+    @IsNotEmpty({message: 'Amount cannot be empty'})
+    amountRecieved: number;
+
+    status: PaymentStatus;
 
     @Expose()
     @IsDateString()
@@ -21,5 +30,18 @@ export class CreatePaymentDto {
     @ApiProperty()
     @IsNotEmpty({message: 'Virtual account number cannot be empty'})
     virtualAccountNumber: string;
+
+    @Expose()
+    @IsString()
+    @ApiProperty()
+    @IsNotEmpty({message: 'Transaction Id cannot be empty'})
+    transactionId: string;
+
+    
+    @Expose()
+    @IsString()
+    @ApiProperty()
+    @IsNotEmpty({message: 'User Id cannot be empty'})
+    userId: string;
 
 }

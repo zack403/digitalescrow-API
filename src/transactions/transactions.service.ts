@@ -38,12 +38,12 @@ export class TransactionsService {
 
     const userTransaction = await this.transRepo.findOne({where: {userId: req.user.id }, order: {createdAt: 'DESC'}});
     
-    if(userTransaction && createTransactionDto.type === 'buying') {
-      if(userTransaction.type === 'buying' && !userTransaction.escrowBankDetails?.hasMoney){
+    if(userTransaction && createTransactionDto.type === TransactionType.BUY) {
+      if(userTransaction.type === TransactionType.BUY && !userTransaction.escrowBankDetails?.hasMoney){
        throw new HttpException('Looks like you have a previous transaction that is awaiting your payment, please proceed to make payment', HttpStatus.BAD_REQUEST);
       }
-    } else if (userTransaction && createTransactionDto.type === 'selling') {
-      if(userTransaction.type === 'selling' && !userTransaction.escrowBankDetails?.hasMoney){
+    } else if (userTransaction && createTransactionDto.type === TransactionType.SELL) {
+      if(userTransaction.type === TransactionType.SELL && !userTransaction.escrowBankDetails?.hasMoney){
         throw new HttpException('Looks like you have a previous transaction that is awaiting your buyers payment', HttpStatus.BAD_REQUEST);
        }
     }
@@ -93,7 +93,7 @@ export class TransactionsService {
         return {
           status: HttpStatus.OK,
           header: 'Escrow Created.',
-          data: `Your request has been sent to the ${saved.type === 'buying' ? 'Seller' : 'buyer' } and we’d notify you when he accepts it` 
+          data: `Your request has been sent to the ${saved.type === TransactionType.BUY ? 'Seller' : 'buyer' } and we’d notify you when he accepts it` 
         };
       }
     } catch (error) {
@@ -183,7 +183,7 @@ export class TransactionsService {
         const msg: SendgridData = {
           to: otherPartyInfo.email,
           from: this.configService.get('SENDGRID_FROM_EMAIL'),
-          templateId: transactionToAccept.type === 'buying' ? this.configService.get('SENDGRID_SELLER_ACCEPT_TEMPLATE_ID') : this.configService.get('SENDGRID_BUYER_ACCEPT_TEMPLATE_ID'),
+          templateId: transactionToAccept.type === TransactionType.BUY ? this.configService.get('SENDGRID_SELLER_ACCEPT_TEMPLATE_ID') : this.configService.get('SENDGRID_BUYER_ACCEPT_TEMPLATE_ID'),
           dynamicTemplateData: {
               name: otherPartyInfo.name,
               link: req.headers.origin +'/transaction-payment/' + transactionToAccept.id + '/' + otherPartyInfo.name + '/' + otherPartyInfo.email
@@ -193,7 +193,7 @@ export class TransactionsService {
         const acceptanceNotificationSent = await this.sendGridSvc.sendMailAsync(msg);
         if(acceptanceNotificationSent) {
           let data;
-          if(transactionToAccept.type === 'buying') {
+          if(transactionToAccept.type === TransactionType.BUY) {
             data = 'We’ll let the buyer know about this and inform you when payment has been made';
           } else {
             data = 'We’ll let the Seller know about this and then you can proceed to make payments';
@@ -245,7 +245,7 @@ export class TransactionsService {
           templateId: this.configService.get('SENDGRID_ESCROW_REJECTED_TEMPLATE_ID'),
           dynamicTemplateData: {
               name: otherPartyInfo.name,
-              type: transactionToReject.type === 'buying' ? 'Seller' : 'Buyer',
+              type: transactionToReject.type === TransactionType.BUY ? 'Seller' : 'Buyer',
               reason: data.reason
           }
         }
@@ -293,7 +293,7 @@ export class TransactionsService {
             from: this.configService.get('SENDGRID_FROM_EMAIL'),
             templateId: this.configService.get('SENDGRID_ESCROW_CHANGE_TEMPLATE_ID'),
             dynamicTemplateData: {
-              subject: transaction.type === 'buying' ? 'Seller suggested changes to the escrow transaction' : 'Buyer suggested changes to the escrow transaction',
+              subject: transaction.type === TransactionType.BUY ? 'Seller suggested changes to the escrow transaction' : 'Buyer suggested changes to the escrow transaction',
               sellerName: otherPartyInfo.name,
               buyerName: req.user.name,
               productName: patched.commodityName,
@@ -308,7 +308,7 @@ export class TransactionsService {
         const sent = await this.sendGridSvc.sendMailAsync(msg);
         if(sent) {
           let data;
-          if(transaction.type === 'buying') {
+          if(transaction.type === TransactionType.BUY) {
             data = 'We’ll inform the buyer about this and let you know if he agrees to the new terms.';
           } else {
             data = 'We’ll inform the seller about this and let you know if he agrees to the new terms.';

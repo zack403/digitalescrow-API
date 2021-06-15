@@ -14,7 +14,7 @@ import { WovenCeateCustomerPayload } from './interfaces/woven-create-customer.in
 import { WovenCreateCustomerResponse } from './interfaces/woven-create-customer-response.interface';
 import { ConfigService } from '@nestjs/config';
 import { TransactionRepository } from 'src/transactions/transaction.repository';
-import { TransactionStatus, TransactionType } from 'src/enum/enum';
+import { PaymentStatus, TransactionStatus, TransactionType } from 'src/enum/enum';
 import { TransactionEntity } from 'src/transactions/entities/transaction.entity';
 import { UserRO } from 'src/users/interfaces/user.interface';
 import SendGridService from 'src/_common/sendgrid/sendgrid.service';
@@ -140,7 +140,7 @@ export class PaymentsService {
         throw new HttpException('You can only trigger payment into escrow as a seller', HttpStatus.BAD_REQUEST);
       }
 
-      if(transaction.status !== TransactionStatus.ACCEPTED) {
+      if(transaction.status != TransactionStatus.ACCEPTED) {
         throw new HttpException('Unable to trigger payment: Buyer has not accepted this transaction.', HttpStatus.BAD_REQUEST);
       }
 
@@ -177,7 +177,7 @@ export class PaymentsService {
     newPayment.userId = req.user.id;
 
     try {
-      const saved = await this.paymentRepo.save(newPayment);
+      await this.paymentRepo.save(newPayment);
       return {
         status: HttpStatus.OK,
         data: `Payment created` 
@@ -274,7 +274,61 @@ export class PaymentsService {
             await this.transRepo.save(transaction);
 
             if(transaction.type === TransactionType.BUY) {
+              const request = [];
+              // save buyer payment sent and seller payment recieved on payment table
+              const paymentSentPayload: CreatePaymentDto = {
+                userId: transaction.userId,
+                amountSent: transaction.amount,
+                amountRecieved: 0,
+                status: PaymentStatus.COMPLETED,
+                transactionId: transaction.id,
+                paymentDate: new Date(),
+                virtualAccountNumber: transaction.escrowBankDetails.accountNumber
+              } 
 
+              request.push(paymentSentPayload);
+
+              const paymentRecievedPayload: CreatePaymentDto = {
+                userId: userPayingTo.id,
+                amountSent: 0,
+                amountRecieved: transaction.amount,
+                status: PaymentStatus.COMPLETED,
+                transactionId: transaction.id,
+                paymentDate: new Date(),
+                virtualAccountNumber: transaction.escrowBankDetails.accountNumber
+              }
+
+              request.push(paymentRecievedPayload);
+              await this.paymentRepo.save(request);
+
+            }
+            else if (transaction.type === TransactionType.SELL) {
+                // save buyer payment sent and seller payment recieved on payment table;
+              const request = [];
+              const paymentRecievedPayload: CreatePaymentDto = {
+                userId: transaction.userId,
+                amountSent: 0,
+                amountRecieved: transaction.amount,
+                status: PaymentStatus.COMPLETED,
+                transactionId: transaction.id,
+                paymentDate: new Date(),
+                virtualAccountNumber: transaction.escrowBankDetails.accountNumber
+              } 
+
+              request.push(paymentRecievedPayload);
+
+              const paymentSentPayload: CreatePaymentDto = {
+                userId: userPayingTo.id,
+                amountSent: transaction.amount,
+                amountRecieved: 0,
+                status: PaymentStatus.COMPLETED,
+                transactionId: transaction.id,
+                paymentDate: new Date(),
+                virtualAccountNumber: transaction.escrowBankDetails.accountNumber
+              } 
+
+              request.push(paymentSentPayload);
+              await this.paymentRepo.save(request);
             }
             return {
               status: 200,

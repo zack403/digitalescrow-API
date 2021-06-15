@@ -19,6 +19,9 @@ export class PaymentEntity extends AbstractBaseEntity {
     @Column({type: 'varchar'})
     virtualAccountNumber:  string;
 
+    @Column({type: 'varchar'})
+    transactionId:  string;
+
     @Column({ name: 'paymentDate', default: new Date()})
     paymentDate: Date;
 
