@@ -264,12 +264,15 @@ export class PaymentsService {
           {headers: this.requestHeaders})
           .toPromise(); 
 
-          console.log({response});
+          console.log("response", response);
+          const r = response.data;
+          console.log("returnValue", r);
+          return;
 
           Logger.log("returnValue", JSON.stringify(response));
 
           const returnValue = response.data;
-          console.log({returnValue});
+          console.log("returnValue", returnValue);
           if(returnValue.status === 'success') {
             //payout completed
             // transaction.escrowBankDetails.payoutComplete = true;
