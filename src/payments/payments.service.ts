@@ -264,15 +264,10 @@ export class PaymentsService {
           {headers: this.requestHeaders})
           .toPromise(); 
 
-          console.log("response", response);
-          const r = response.data;
-          console.log("returnValue", r);
-          return;
-
-          Logger.log("returnValue", JSON.stringify(response));
-
           const returnValue = response.data;
-          console.log("returnValue", returnValue);
+
+          console.log({returnValue});
+          
           if(returnValue.status === 'success') {
             //payout completed
             // transaction.escrowBankDetails.payoutComplete = true;
@@ -340,12 +335,14 @@ export class PaymentsService {
               status: 200,
               data: 'Payout transaction successful'
             }
-          } else if (returnValue.status === 'failed') {
+          } 
+          if (returnValue.status === 'failed') {
             return {
               status: 500,
               data: 'Payout transaction failed'
             }
-          } else {
+          } 
+          if (returnValue.status === 'pending') {
             return {
               status: 200,
               data: 'Payout transaction initiated and its pending'
