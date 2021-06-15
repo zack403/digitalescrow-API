@@ -276,63 +276,63 @@ export class PaymentsService {
             transaction.escrowBankDetails.payoutReference = returnValue.data.payout_reference;
             await this.transRepo.save(transaction);
 
-            if(transaction.type === TransactionType.BUY) {
-              const request = [];
-              // save buyer payment sent and seller payment recieved on payment table
-              const paymentSentPayload: CreatePaymentDto = {
-                userId: transaction.userId,
-                amountSent: transaction.amount,
-                amountRecieved: 0,
-                status: PaymentStatus.COMPLETED,
-                transactionId: transaction.id,
-                paymentDate: new Date(),
-                virtualAccountNumber: transaction.escrowBankDetails.accountNumber
-              } 
+            // if(transaction.type === TransactionType.BUY) {
+            //   const request = [];
+            //   // save buyer payment sent and seller payment recieved on payment table
+            //   const paymentSentPayload: CreatePaymentDto = {
+            //     userId: transaction.userId,
+            //     amountSent: transaction.amount,
+            //     amountRecieved: 0,
+            //     status: PaymentStatus.COMPLETED,
+            //     transactionId: transaction.id,
+            //     paymentDate: new Date(),
+            //     virtualAccountNumber: transaction.escrowBankDetails.accountNumber
+            //   } 
 
-              request.push(paymentSentPayload);
+            //   request.push(paymentSentPayload);
 
-              const paymentRecievedPayload: CreatePaymentDto = {
-                userId: userPayingTo.id,
-                amountSent: 0,
-                amountRecieved: transaction.amount,
-                status: PaymentStatus.COMPLETED,
-                transactionId: transaction.id,
-                paymentDate: new Date(),
-                virtualAccountNumber: transaction.escrowBankDetails.accountNumber
-              }
+            //   const paymentRecievedPayload: CreatePaymentDto = {
+            //     userId: userPayingTo.id,
+            //     amountSent: 0,
+            //     amountRecieved: transaction.amount,
+            //     status: PaymentStatus.COMPLETED,
+            //     transactionId: transaction.id,
+            //     paymentDate: new Date(),
+            //     virtualAccountNumber: transaction.escrowBankDetails.accountNumber
+            //   }
 
-              request.push(paymentRecievedPayload);
-              await this.paymentRepo.save(request);
+            //   request.push(paymentRecievedPayload);
+            //   await this.paymentRepo.save(request);
 
-            }
-            else if (transaction.type === TransactionType.SELL) {
-                // save buyer payment sent and seller payment recieved on payment table;
-              const request = [];
-              const paymentRecievedPayload: CreatePaymentDto = {
-                userId: transaction.userId,
-                amountSent: 0,
-                amountRecieved: transaction.amount,
-                status: PaymentStatus.COMPLETED,
-                transactionId: transaction.id,
-                paymentDate: new Date(),
-                virtualAccountNumber: transaction.escrowBankDetails.accountNumber
-              } 
+            // }
+            // else if (transaction.type === TransactionType.SELL) {
+            //     // save buyer payment sent and seller payment recieved on payment table;
+            //   const request = [];
+            //   const paymentRecievedPayload: CreatePaymentDto = {
+            //     userId: transaction.userId,
+            //     amountSent: 0,
+            //     amountRecieved: transaction.amount,
+            //     status: PaymentStatus.COMPLETED,
+            //     transactionId: transaction.id,
+            //     paymentDate: new Date(),
+            //     virtualAccountNumber: transaction.escrowBankDetails.accountNumber
+            //   } 
 
-              request.push(paymentRecievedPayload);
+            //   request.push(paymentRecievedPayload);
 
-              const paymentSentPayload: CreatePaymentDto = {
-                userId: userPayingTo.id,
-                amountSent: transaction.amount,
-                amountRecieved: 0,
-                status: PaymentStatus.COMPLETED,
-                transactionId: transaction.id,
-                paymentDate: new Date(),
-                virtualAccountNumber: transaction.escrowBankDetails.accountNumber
-              } 
+            //   const paymentSentPayload: CreatePaymentDto = {
+            //     userId: userPayingTo.id,
+            //     amountSent: transaction.amount,
+            //     amountRecieved: 0,
+            //     status: PaymentStatus.COMPLETED,
+            //     transactionId: transaction.id,
+            //     paymentDate: new Date(),
+            //     virtualAccountNumber: transaction.escrowBankDetails.accountNumber
+            //   } 
 
-              request.push(paymentSentPayload);
-              await this.paymentRepo.save(request);
-            }
+            //   request.push(paymentSentPayload);
+            //   await this.paymentRepo.save(request);
+            // }
             return {
               status: 200,
               data: 'Payout transaction successful'
@@ -353,6 +353,8 @@ export class PaymentsService {
           throw new HttpException(`Please make sure you are connected to the internet`, HttpStatus.NOT_ACCEPTABLE);
         }
         console.log("error", error);
+        Logger.error(`Woven.releasePayment: ${error}`);
+
         //const {message} = error.response.data;
         //Logger.error(`Woven.releasePayment: ${message}`);
         throw new HttpException(`Error while trying to release payment: Error: ${error}`,  HttpStatus.BAD_REQUEST );
