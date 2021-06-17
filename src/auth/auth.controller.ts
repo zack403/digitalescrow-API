@@ -1,7 +1,6 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, HttpException, HttpStatus, UseGuards, HttpCode, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Req, HttpException, HttpStatus, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Request, Response } from 'express';
 import { LoginRO } from 'src/users/interfaces/login-ro.interface';
 import { ResponseSuccess } from 'src/_common/response-success';
 import { AuthService } from './auth.service';
@@ -41,7 +40,7 @@ export class AuthController {
 
   @Get('/verify-email/:token')
   @ApiParam({name: 'token', required: true})
-  @ApiOperation({summary: 'Verifies a Descrow user by sending an email with a token after signing up'})
+  @ApiOperation({summary: 'Verifies a Descrow user email by token'})
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
   @ApiResponse({ status: 200, description: 'Email verified successfully' })

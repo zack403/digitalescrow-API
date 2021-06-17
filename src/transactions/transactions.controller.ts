@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, Query, HttpException, HttpStatus, Put, UseInterceptors, Logger } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, UseGuards, Req, Query, HttpException, HttpStatus, Put, Logger } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
@@ -32,7 +32,7 @@ export class TransactionsController {
   async onWovenEvents(@Body() payload: any, @Req() req: any): Promise<any> {
     Logger.log("woven-events", req);
     Logger.log("woven-events", payload);
-    return await this.transactionsService.onWovenEvents(payload, req);
+    return await this.transactionsService.onWovenEvents(payload);
   }
 
 

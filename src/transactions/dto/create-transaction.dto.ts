@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
-import { IsString, IsNotEmpty, IsOptional, IsNumber, IsDateString, IsObject, IsArray, IsEnum, Matches } from "class-validator";
+import { IsString, IsNotEmpty, IsOptional, IsNumber, IsDateString, IsObject, IsArray, IsEnum, Matches, MinLength, MaxLength, Min } from "class-validator";
 import { TransactionType } from "src/enum/enum";
 import { CounterPartyInfo } from "../interfaces/counter-party-info.interface";
 
@@ -20,6 +20,8 @@ export class CreateTransactionDto {
 
     @IsString()
     @Matches(/^[0-9]*$/, {message: 'Phone Number should be of type number'})
+    @MinLength(11, {message: 'Phone Number should be minimum 11 digits'})
+    @MaxLength(11, {message: 'Phone Number should be maximum 11 digits'}) 
     @ApiProperty()
     @IsNotEmpty({message: 'Phone Number is required'})
     phoneNumber: string;
@@ -27,6 +29,7 @@ export class CreateTransactionDto {
     @Expose()
     @IsNumber()
     @ApiProperty()
+    @Min(1)
     @IsNotEmpty({message: 'Amount cannot be empty'})
     amount: number;
 
@@ -44,6 +47,7 @@ export class CreateTransactionDto {
 
     @Expose()
     @IsObject()
+    @ApiProperty()
     @IsNotEmpty({message: 'Counter Party Info cannot be empty'})
     counterPartyInfo: CounterPartyInfo;
 
@@ -59,6 +63,7 @@ export class CreateTransactionDto {
     
     @Expose()
     @IsNotEmpty()
+    @ApiProperty({enum: TransactionType, description: "Value can either be 'buying' or 'selling'"})
     @IsEnum(TransactionType)
     type: TransactionType
 

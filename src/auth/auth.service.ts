@@ -141,7 +141,7 @@ export class AuthService {
   }
 
   public async sendVerificationEmail(email: string, token: string, host: string): Promise<boolean> {
-
+    host = this.configService.get("host");
     const user = await this.userRepo.findOne({where: {email}});
     if (user) {
 
@@ -214,6 +214,7 @@ export class AuthService {
   }
 
   public async sendEmailForgotPassword(email: string, host: string): Promise<ResponseSuccess> {
+    host = this.configService.get("host");
     const user = await this.userRepo.findOne({ where: { email: email } });
     if (!user) {
       throw new HttpException(`An account with the email ${email} does not exist with us`, HttpStatus.NOT_FOUND);
@@ -229,12 +230,11 @@ export class AuthService {
         text: 'You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n' +
         'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
         host +'/reset-password/' + tokenModel.resetToken + '\n\n' +
-        'If you did not request this, please ignore this email and your password will remain unchanged.\n',
-        templateId: ''
+        'If you did not request this, please ignore this email and your password will remain unchanged.\n'
       }
      
         try {
-            const sent = await this.sendGridSvc.sendMailAsync(mailOptions);
+            const sent = await this.sendGridSvc.sendMailAsync(mailOptions as SendgridData);
             if(sent) {
               return {
                 status: HttpStatus.OK,

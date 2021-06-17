@@ -5,4 +5,6 @@ export interface WovenCeateCustomerPayload {
     mobile_number: string;
     expires_on: Date;
     destination_nuban: string;
+    min_amount: number;
+    max_amount: number;
 }

@@ -1,9 +1,9 @@
-import { HttpException, HttpStatus, Injectable, Logger, PayloadTooLargeException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { plainToClass, plainToClassFromExist } from 'class-transformer';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { ResponseSuccess } from 'src/_common/response-success';
 import { Filter } from 'src/_utility/filter.util';
-import { Brackets, Connection, DeleteResult, ILike, Like } from 'typeorm';
+import { Brackets, Connection, DeleteResult } from 'typeorm';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { TransactionEntity } from './entities/transaction.entity';
@@ -36,16 +36,24 @@ export class TransactionsService {
 
   async create(createTransactionDto: CreateTransactionDto, req: any): Promise<ResponseSuccess> {
 
-    const userTransaction = await this.transRepo.findOne({where: {userId: req.user.id }, order: {createdAt: 'DESC'}});
+    // const userTransaction = await this.transRepo.findOne({where: {userId: req.user.id }, order: {createdAt: 'DESC'}});
     
-    if(userTransaction && createTransactionDto.type === TransactionType.BUY) {
-      if(userTransaction.type === TransactionType.BUY && !userTransaction.escrowBankDetails?.hasMoney){
-       throw new HttpException('Looks like you have a previous transaction that is awaiting your payment, please proceed to make payment', HttpStatus.BAD_REQUEST);
-      }
-    } else if (userTransaction && createTransactionDto.type === TransactionType.SELL) {
-      if(userTransaction.type === TransactionType.SELL && !userTransaction.escrowBankDetails?.hasMoney){
-        throw new HttpException('Looks like you have a previous transaction that is awaiting your buyers payment', HttpStatus.BAD_REQUEST);
-       }
+    // if(userTransaction && createTransactionDto.type === TransactionType.BUY) {
+    //   if(userTransaction.type === TransactionType.BUY && !userTransaction.escrowBankDetails?.hasMoney){
+    //    throw new HttpException('Looks like you have a previous transaction that is awaiting your payment, please proceed to make payment', HttpStatus.BAD_REQUEST);
+    //   }
+    // } else if (userTransaction && createTransactionDto.type === TransactionType.SELL) {
+    //   if(userTransaction.type === TransactionType.SELL && !userTransaction.escrowBankDetails?.hasMoney){
+    //     throw new HttpException('Looks like you have a previous transaction that is awaiting your buyers payment', HttpStatus.BAD_REQUEST);
+    //    }
+    // }
+
+    if(!createTransactionDto.counterPartyInfo.name || !createTransactionDto.counterPartyInfo.email) {
+      throw new HttpException("The counter party info name and email cannot be empty.", HttpStatus.BAD_REQUEST);
+    }
+
+    if(!(/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(createTransactionDto.counterPartyInfo.email))) {
+      throw new HttpException("The counter party info email you entered is not valid.", HttpStatus.BAD_REQUEST);
     }
 
     const newTransaction = plainToClass(TransactionEntity, createTransactionDto);
@@ -70,10 +78,14 @@ export class TransactionsService {
       email: req.user.email,
       mobile_number: newTransaction.phoneNumber,
       expires_on,
+      min_amount: newTransaction.amount,
+      max_amount: newTransaction.amount,
       destination_nuban: this.configService.get('DESTINATION_NUBAN')
     }
 
-    let customerHasVirtualAcctNo: boolean = false;
+    let customerHasVirtualAcctNo = false;
+    const userTransaction = await this.transRepo.findOne({where: {userId: req.user.id }, order: {createdAt: 'DESC'}});
+
     if(userTransaction && userTransaction.escrowBankDetails?.accountNumber) {
       customerHasVirtualAcctNo = true;
     } else {
@@ -186,7 +198,7 @@ export class TransactionsService {
           templateId: transactionToAccept.type === TransactionType.BUY ? this.configService.get('SENDGRID_SELLER_ACCEPT_TEMPLATE_ID') : this.configService.get('SENDGRID_BUYER_ACCEPT_TEMPLATE_ID'),
           dynamicTemplateData: {
               name: otherPartyInfo.name,
-              link: req.headers.origin +'/transaction-payment/' + transactionToAccept.id + '/' + otherPartyInfo.name + '/' + otherPartyInfo.email
+              link: this.configService.get("host") +'/transaction-payment/' + transactionToAccept.id + '/' + otherPartyInfo.name + '/' + otherPartyInfo.email
           }
         }
 
@@ -301,7 +313,7 @@ export class TransactionsService {
               price: formatter.format(patched.amount),
               conditions: data.conditions.join(),
               message: data.message,
-              link: req.headers.origin +'/escrow-review/'+ patched.id
+              link: this.configService.get("host") +'/escrow-review/'+ patched.id
           }
         }
 
@@ -348,7 +360,7 @@ export class TransactionsService {
             description: payload.description,
             price: formatter.format(payload.amount),
             conditions: payload.conditions.join(),
-            link: req.headers.origin +'/escrow-review/'+ payload.id
+            link: this.configService.get("host") +'/escrow-review/'+ payload.id
         }
     }
 
@@ -358,7 +370,7 @@ export class TransactionsService {
     }
   }
 
-  async onWovenEvents(payload: any, req: any): Promise<any> {
+  async onWovenEvents(payload: any): Promise<any> {
     if(!payload) {
       Logger.log("woven-events", "no payload");
       return {

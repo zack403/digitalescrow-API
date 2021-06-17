@@ -44,7 +44,8 @@ export class PayOutService {
             } else {
                 userPayingTo = await this.userSvc.findOne(p.userId);
             }
-            await this.paymentSvc.initiatePayout(p, userPayingTo);
+           const result =  await this.paymentSvc.initiatePayout(p, userPayingTo);
+           return result;
         } 
       }
     }

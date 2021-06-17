@@ -16,7 +16,7 @@ export default class SendGridService {
           return true;
         }
     } catch (error) {
-      let sendErr = [];
+      const sendErr = [];
       for (const err of error.response.body.errors) {
         sendErr.push(err.message);
       }
