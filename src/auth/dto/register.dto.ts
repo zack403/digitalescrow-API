@@ -13,6 +13,8 @@ export class RegisterDto {
 
     @IsString()
     @ApiProperty()
+    @MinLength(3, {message: 'Name should be minimum 3 characters long'})
+    @MaxLength(50, {message: 'Name should be maximum 50 characters long'})  
     @IsNotEmpty({message: 'Name is required'})
     name: string;
     

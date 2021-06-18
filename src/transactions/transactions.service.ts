@@ -19,6 +19,7 @@ import { NewTermsDto } from './dto/new-terms.dto';
 import { RejectionDto } from './dto/rejection.dto';
 import { WovenCeateCustomerPayload } from 'src/payments/interfaces/woven-create-customer.interface';
 import { PaymentsService } from 'src/payments/payments.service';
+import { isNotValidDate } from 'src/_utility/date-validator.util';
 
 
 @Injectable()
@@ -54,6 +55,18 @@ export class TransactionsService {
 
     if(!(/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(createTransactionDto.counterPartyInfo.email))) {
       throw new HttpException("The counter party info email you entered is not valid.", HttpStatus.BAD_REQUEST);
+    }
+
+    if(isNotValidDate(createTransactionDto.paymentDate)) {
+      throw new HttpException("Payment date of transaction cannot be lesser than the current date.", HttpStatus.BAD_REQUEST);
+    }
+
+    if(isNotValidDate(createTransactionDto.expiryDate)) {
+      throw new HttpException("Expiry date of transaction cannot be lesser than the current date.", HttpStatus.BAD_REQUEST);
+    }
+
+    if(new Date(createTransactionDto.paymentDate).setHours(0,0,0,0) > new Date(createTransactionDto.expiryDate).setHours(0,0,0,0)) {
+      throw new HttpException('Payment date of transaction cannot be greater than Expiry date', HttpStatus.BAD_REQUEST);
     }
 
     const newTransaction = plainToClass(TransactionEntity, createTransactionDto);
@@ -379,7 +392,7 @@ export class TransactionsService {
       }
     }
 
-    if(payload.unique_reference) {
+    if(payload.unique_reference) { // means a successful payment has been made into the escrow acct so update necessary table and notify both parties
       const transaction = await this.transRepo.createQueryBuilder("trans")
                           .where('trans.escrowBankDetails ::jsonb @> :escrowBankDetails', {
                             escrowBankDetails: {
@@ -391,6 +404,79 @@ export class TransactionsService {
         transaction.escrowBankDetails.hasMoney = true;
         await this.transRepo.save(transaction);
 
+        //notify both parties of the transaction that payment has been made into the escrow account
+        if(transaction.type === TransactionType.BUY) {
+          // get the initiator info info
+          const mails = [];
+          const buyerMailOptions = {
+            to: transaction.initiatorInfo.email,
+            from: this.configService.get('SENDGRID_FROM_EMAIL'),
+            subject: 'Payment made into escrow',
+            text:   `<p> Hi ${transaction.initiatorInfo.name}, </p>
+                    <p> Your payment into the escrow account ${transaction.escrowBankDetails.accountNumber}-${transaction.escrowBankDetails.bankName} was successful.</p>
+                    <p> Thank you for choosing <strong> Descrow. </strong></p>`
+          }
+
+          mails.push(buyerMailOptions);
+
+          const sellerMailOptions = {
+            to: transaction.counterPartyInfo.email,
+            from: this.configService.get('SENDGRID_FROM_EMAIL'),
+            subject: 'Payment made into escrow',
+            text:   `<p> Hi ${transaction.counterPartyInfo.name}, </p>
+                    <p> We are sending you this message to notify you,</p>
+                    <p> that the buyer has made payment for transaction ${transaction.commodityName} into the escrow account</p>
+                    <p> Thank you for choosing <strong> Descrow. </strong></p>`
+          }
+
+          mails.push(sellerMailOptions);
+         
+          try {
+              const sent = await this.sendGridSvc.sendMailAsync(mails as SendgridData[]);
+              if(sent) {
+                return HttpStatus.OK;
+              }
+          } catch (error) {
+              Logger.log("on_woven_events_send_mail", error)
+              return HttpStatus.OK;
+          }
+          
+        } else if (transaction.type === TransactionType.SELL) {
+          const mails = [];
+          
+          const buyerMailOptions = {
+            to: transaction.initiatorInfo.email,
+            from: this.configService.get('SENDGRID_FROM_EMAIL'),
+            subject: 'Payout successful',
+            text: `<p> Hi ${transaction.initiatorInfo.name}, </p>
+                  <p> Your payout to ${transaction.counterPartyInfo.name} was successful.</p>
+                  <p> Thank you for choosing <strong> Descrow. </strong></p>`
+          }
+
+          mails.push(buyerMailOptions);
+
+          const sellerMailOptions = {
+            to: transaction.counterPartyInfo.email,
+            from: this.configService.get('SENDGRID_FROM_EMAIL'),
+            subject: 'Payout successful',
+            text:   `<p> Hi ${transaction.counterPartyInfo.name}, </p>
+                    <p> The buyer has paid for your goods and services,</p>
+                    <p> Please confirm that you have recieved payment.</p>
+                    <p> Thank you for choosing <strong> Descrow. </strong></p>`  
+          }
+
+          mails.push(sellerMailOptions);
+         
+          try {
+              const sent = await this.sendGridSvc.sendMailAsync(mails as SendgridData[]);
+              if(sent) {
+                return HttpStatus.OK;
+              }
+          } catch (error) {
+              Logger.log("on_woven_events_send_mail", error)
+              return HttpStatus.OK;
+          }
+        }
         return HttpStatus.OK;
 
       } else {

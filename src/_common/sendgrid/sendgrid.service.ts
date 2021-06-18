@@ -9,7 +9,7 @@ export default class SendGridService {
     SendGrid.setApiKey(this.configService.get('SENDGRID_API_KEY'));
   }
 
-  async sendMailAsync(payload: SendgridData): Promise<boolean> {
+  async sendMailAsync(payload: SendgridData | SendgridData[]): Promise<boolean> {
     try {
         const sent = await SendGrid.send(payload);
         if(sent) {

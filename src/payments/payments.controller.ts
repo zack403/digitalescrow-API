@@ -30,8 +30,8 @@ export class PaymentsController {
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({ status: 201, description: 'Payment Successfully requested' })
   @Post('request_payment/:transactionId')
-  async requestPayment(@Param('transactionId') transactionId: string): Promise<ResponseSuccess> {
-    return await this.paymentService.requestPayment(transactionId);
+  async requestPayment(@Param('transactionId') transactionId: string, @Req() req: any): Promise<ResponseSuccess> {
+    return await this.paymentService.requestPayment(transactionId, req.user);
   }
 
   @ApiOperation({summary: 'Request payment for an escrow transaction'})
@@ -46,8 +46,8 @@ export class PaymentsController {
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({ status: 201, description: 'Payment Successfully requested' })
   @Post('release_payment/:transactionId')
-  async releasePayment(@Param('transactionId') transactionId: string): Promise<ResponseSuccess> {
-    return await this.paymentService.releasePayment(transactionId);
+  async releasePayment(@Param('transactionId') transactionId: string, @Req() req: any): Promise<ResponseSuccess> {
+    return await this.paymentService.releasePayment(transactionId, req.user);
   }
 
   // @ApiOperation({summary: 'Refuse payment for an escrow transaction'})

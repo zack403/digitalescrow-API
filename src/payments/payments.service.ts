@@ -72,15 +72,25 @@ export class PaymentsService {
       }
   }
 
-  async releasePayment(transactionId: string): Promise<ResponseSuccess>  {
+  async releasePayment(transactionId: string, user: UserEntity): Promise<ResponseSuccess>  {
     if(!transactionId) {
       throw new HttpException('Transaction id cannot be empty', HttpStatus.BAD_REQUEST);
     }
 
     const transaction = await this.transRepo.findOne(transactionId);
     if(transaction) {
+        // check if the inititator of the transaction is the one actually trying to release payment
+       if(user.id != transaction.userId) {
+          throw new HttpException('Invalid request, access denied.', HttpStatus.FORBIDDEN);
+       }
+
+       // check if payout has been completed already for this transaction
+       if(transaction.escrowBankDetails.payoutComplete) {
+          throw new HttpException('Payout has been completed for this transaction.', HttpStatus.BAD_REQUEST);
+       }
+
        if(transaction.type != TransactionType.BUY) {
-         throw new HttpException('You can only release a payment as a buyer', HttpStatus.BAD_REQUEST);
+         throw new HttpException('You can only release a payment for a transaction whose type is buying', HttpStatus.BAD_REQUEST);
        }
 
        const userPayingTo = await this.userSvc.findUserByEmail(transaction.counterPartyInfo.email);
@@ -98,26 +108,36 @@ export class PaymentsService {
           throw new HttpException('Operation failed, Escrow account to debit does not have money in it', HttpStatus.BAD_REQUEST);
         }
 
-        const result = await this.initiatePayout(transaction, userPayingTo);
+        const result = await this.initiatePayout(transaction, userPayingTo, user.name);
         return result;
 
     }
     throw new HttpException('Transaction not found', HttpStatus.NOT_FOUND);
   }
 
-  async requestPayment(transactionId: string): Promise<ResponseSuccess>  {
+  async requestPayment(transactionId: string, user: UserEntity): Promise<ResponseSuccess>  {
     if(!transactionId) {
       throw new HttpException('Transaction id cannot be empty', HttpStatus.BAD_REQUEST);
     }
 
     const transaction = await this.transRepo.findOne(transactionId);
     if(transaction) {
+
        if(transaction.type != TransactionType.SELL) {
-         throw new HttpException('You can only request a payment as a seller', HttpStatus.BAD_REQUEST);
+         throw new HttpException('You can only request a payment for a transaction whose type is selling', HttpStatus.BAD_REQUEST);
        }
 
        const userRequestingPayout = await this.userSvc.findOne(transaction.userId);
        if(userRequestingPayout) {
+          
+          if(user.id != userRequestingPayout.id) {
+            throw new HttpException('Invalid request, access denied.', HttpStatus.FORBIDDEN);
+          }
+
+          if(transaction.escrowBankDetails.payoutComplete) {
+            throw new HttpException('Payout has been completed for this transaction.', HttpStatus.BAD_REQUEST);
+          }
+
           if (!userRequestingPayout.userBankDetails?.accountNumber || !userRequestingPayout.userBankDetails?.bankCode) {
               throw new HttpException('Please update your bank information before requesting for payout', HttpStatus.NOT_ACCEPTABLE)
           }
@@ -125,7 +145,12 @@ export class PaymentsService {
          throw new HttpException('User does not exist', HttpStatus.NOT_FOUND);
        }
 
-      const result = await this.initiatePayout(transaction, userRequestingPayout);
+       //check if vNuban generated for the transaction has money in it
+       if(!transaction.escrowBankDetails.hasMoney) {
+        throw new HttpException('Operation failed, Escrow account to debit does not have money in it', HttpStatus.BAD_REQUEST);
+      }
+
+      const result = await this.initiatePayout(transaction, userRequestingPayout, user.name);
       return result;
 
     }
@@ -162,7 +187,7 @@ export class PaymentsService {
             if(sent) {
               return {
                 status: HttpStatus.OK,
-                data: "The buyer has been notified about the payment."
+                data: "The buyer has been notified to make payment into escrow account."
               }
             }
         } catch (error) {
@@ -251,7 +276,7 @@ export class PaymentsService {
     }
   }
 
-  public async initiatePayout(transaction: TransactionEntity, userPayingTo: UserRO) {
+  public async initiatePayout(transaction: TransactionEntity, userPayingTo: UserRO, createdBy: string) {
         const payload = {
           beneficiary_nuban : userPayingTo.userBankDetails.accountNumber,
           amount : transaction.amount,
@@ -287,7 +312,8 @@ export class PaymentsService {
                 status: PaymentStatus.COMPLETED,
                 transactionId: transaction.id,
                 paymentDate: new Date(),
-                virtualAccountNumber: transaction.escrowBankDetails.accountNumber
+                virtualAccountNumber: transaction.escrowBankDetails.accountNumber,
+                createdBy
               } 
 
               request.push(paymentSentPayload);
@@ -299,7 +325,8 @@ export class PaymentsService {
                 status: PaymentStatus.COMPLETED,
                 transactionId: transaction.id,
                 paymentDate: new Date(),
-                virtualAccountNumber: transaction.escrowBankDetails.accountNumber
+                virtualAccountNumber: transaction.escrowBankDetails.accountNumber,
+                createdBy
               }
 
               request.push(paymentRecievedPayload);
@@ -316,7 +343,8 @@ export class PaymentsService {
                 status: PaymentStatus.COMPLETED,
                 transactionId: transaction.id,
                 paymentDate: new Date(),
-                virtualAccountNumber: transaction.escrowBankDetails.accountNumber
+                virtualAccountNumber: transaction.escrowBankDetails.accountNumber,
+                createdBy
               } 
 
               request.push(paymentRecievedPayload);
@@ -328,7 +356,8 @@ export class PaymentsService {
                 status: PaymentStatus.COMPLETED,
                 transactionId: transaction.id,
                 paymentDate: new Date(),
-                virtualAccountNumber: transaction.escrowBankDetails.accountNumber
+                virtualAccountNumber: transaction.escrowBankDetails.accountNumber,
+                createdBy
               } 
 
               request.push(paymentSentPayload);

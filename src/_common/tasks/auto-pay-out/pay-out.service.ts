@@ -6,6 +6,7 @@ import { TransactionRepository } from 'src/transactions/transaction.repository';
 import { PaymentsService } from 'src/payments/payments.service';
 import { TransactionType } from 'src/enum/enum';
 import { UsersService } from 'src/users/users.service';
+import { UserRO } from 'src/users/interfaces/user.interface';
 
 
 @Injectable()
@@ -38,14 +39,16 @@ export class PayOutService {
 
       if(payOuts.length > 0) {
         for (const p of payOuts) {
-            let userPayingTo;
+            let userPayingTo: UserRO;
+            
             if(p.type === TransactionType.BUY) {
                 userPayingTo = await this.userSvc.findUserByEmail(p.counterPartyInfo.email);
-            } else {
+            }
+            else {
                 userPayingTo = await this.userSvc.findOne(p.userId);
             }
-           const result =  await this.paymentSvc.initiatePayout(p, userPayingTo);
-           return result;
+
+            await this.paymentSvc.initiatePayout(p, userPayingTo, "admin");
         } 
       }
     }

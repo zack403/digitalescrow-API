@@ -63,9 +63,9 @@ export class AuthController {
   @ApiResponse({ status: 500, description: 'Internal server error' })
   @ApiResponse({ status: 200, description: 'Email Verification sent' })
   public async sendEmailVerification(@Param() params: any, @Req() req: any): Promise<ResponseSuccess> {
-      const {emailToken} = await this.authService.createEmailToken(params.email);
-      if(emailToken) {
-        const isEmailSent = await this.authService.sendVerificationEmail(params.email, emailToken, req.headers.origin );
+      const data = await this.authService.createEmailToken(params.email);
+      if(data) {
+        const isEmailSent = await this.authService.sendVerificationEmail(params.email, data.emailToken, req.headers.origin );
         if(isEmailSent){
           return {
             status: HttpStatus.OK,
@@ -73,6 +73,13 @@ export class AuthController {
           } 
         } 
       }
+      
+      return {
+        status: HttpStatus.NOT_FOUND,
+        data: 'Email does not exist with us'
+      } 
+
+
   }
 
   @Get('/forgot-password/:email')

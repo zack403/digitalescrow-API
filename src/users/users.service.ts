@@ -3,6 +3,8 @@ import { plainToClassFromExist } from 'class-transformer';
 import { LoginDto } from 'src/auth/dto/login.dto';
 import { RegisterDto } from 'src/auth/dto/register.dto';
 import { JwtPayload } from 'src/auth/interfaces/jwt.interface';
+import { TransactionStatus } from 'src/enum/enum';
+import { TransactionRepository } from 'src/transactions/transaction.repository';
 import { ResponseSuccess } from 'src/_common/response-success';
 import { Filter } from 'src/_utility/filter.util';
 import { Connection, DeleteResult, ILike } from 'typeorm';
@@ -14,11 +16,13 @@ import { UsersRepository } from './users.repository';
 @Injectable()
 export class UsersService {
   private  userRepo: UsersRepository;
+  private  transRepo: TransactionRepository;
 
 
-  constructor(private readonly connection: Connection 
-  ) {
-    this.userRepo = this.connection.getCustomRepository(UsersRepository);
+
+  constructor(private readonly connection: Connection) {
+      this.userRepo = this.connection.getCustomRepository(UsersRepository);
+      this.transRepo = this.connection.getCustomRepository(TransactionRepository);
 
    }
 
@@ -41,7 +45,22 @@ export class UsersService {
       //findOne(id,  {relations: ['transactions', 'payments'],  order: {createdAt: 'DESC'}});
    
       if(user) {
-          return user;
+
+          const involvedTrans = await this.transRepo.createQueryBuilder("trans")
+                    .where('trans.counterPartyInfo ::jsonb @> :counterPartyInfo', {
+                      counterPartyInfo: {
+                        email: user.email
+                      }
+                  })
+                  .andWhere("trans.status <> :status", { status: TransactionStatus.PENDING})
+                  .getMany();
+
+          if (involvedTrans.length > 0) {
+              user.transactions.push(...involvedTrans);
+              return user;
+          } else {
+            return user;
+          }
       }
       throw new HttpException(`The user with ID ${id} cannot be found`, HttpStatus.NOT_FOUND);
     } catch (error) {
